@@ -682,25 +682,45 @@ class PivcController extends Controller
            }
 
            public function rinnRikshaQuestions(Request $request) {
-                $req_params = ['sbil_key', 'sbil_cpage', 'sbil_data'];
-
-                // Validate request
-                $validator = Validator::make($request->all(), [
-                'sbil_key' => 'required|string',
-                'sbil_cpage' => 'required|string',
-                'sbil_data' => 'nullable|string',
-                ]);
-                if ($validator->fails()) {
-                    return response()->json(['status' => false, 'msg' => 'Invalid Arguments. Please try again!']);
-                }
-                $link_key = $request->input('sbil_key') ?: '';
-                $link_configKey = $request->input('sbil_ckey') ?: '';
+            $reqParams = ['sbil_key', 'sbil_cpage', 'sbil_data'];
+        
+            $sbilCpage = $request->input('sbil_cpage', '');
+            
+            if (in_array(null, array_map([$request, 'input'], $reqParams), true)) {
+                return response()->json(['status' => false, 'msg' => 'Invalid Arguments. Please try again!']);
+            }
+            
+            if (in_array($sbilCpage, ['Medical Confirmation Screen One', 'Medical Confirmation Screen Two'])) {
+                $linkKey = trim($request->input('sbil_key', ''));
+                $linkConfigKey = $request->input('sbil_key', '');
                 
-                $sbilCPage = $request->input('sbil_cpage') ?: ''; 
-                if ($sbilCPage == 'Medical Confirmation Screen One') { 
-                    // Your business logic for "Medical Confirmation Screen One" here
+                if (!empty($linkKey)) {
+                    $linkDetails = $this->linkService->checkLinkKeyExist($linkKey);
+                    
+                    if (!$linkDetails) {
+                        return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+                    }
+                    
+                    $linkId = $linkDetails['id'];
+                    $configParams = [
+                        'page' => $request->input('sbil_cpage', null),
+                        'input' => optional(json_decode($request->input('sbil_data', '{}'), true))['sbil_data'] ?? null,
+                        'created_on' => now(),
+                    ];
+                    
+                    $configResponse = $this->linkService->updateLinkResponseRinnRiksha($linkId, $linkConfigKey, $configParams);
+
+                    return response()->json([
+                        'status' => $configResponse === true,
+                        'msg' => $configResponse === true ? 'Updated the Links Response!' : 'Link response is not updated!'
+                    ]);
                 }
-           }
+                return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+            }
+            
+            return response()->json(['status' => false, 'msg' => 'Invalid Page.']);
+        }
+        
         
      
                 

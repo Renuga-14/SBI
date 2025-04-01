@@ -370,7 +370,73 @@ class LinkService
                 return FALSE;
             }
         }
-    
+        public function updateLinkResponseRinnRiksha($linkId, $linkConfigKey, $configParams, $comboNumber = "")
+        {
+            $linkDetails = $this->getPIVCLinkDetail($linkId);
+           
+            if (!empty($linkDetails)) {
+                $linkResponse = self::checkHadValue($linkDetails->response)?? '';  
+                $resArr = !empty($linkResponse) ? json_decode($linkResponse, true) : [];
+               
+                if ($configParams['page'] === 'Medical Confirmation Screen One') {
+                    $medicalCondition = strtolower($configParams['input']['medicalConditionPresent'] ?? '');
+                    $treatmentLast5Years = strtolower($configParams['input']['treatmentLast_5years'] ?? '');
+        
+                    if (($medicalCondition === 'no' || $medicalCondition === 'n') && ($treatmentLast5Years === 'no' || $treatmentLast5Years === 'n')) {
+                        $configParams['agree_status'] = false;
+                        $agreename = 'cMedicalQuestionOne';
+                        
+                        if (!isset($resArr['ePerDet']) && !isset($resArr['eMedQuest'])) {
+                            $this->clearDisAgreeStatus($linkId);
+                        }
+                    } else {
+                        $configParams['agree_status'] = true;
+                        $agreename = 'eMedicalQuestionOne';
+                        
+                        $this->setDisAgreeStatus($linkId);
+                    }
+                    
+                    $resArr[$agreename] = $configParams; 
+                } elseif ($configParams['page'] === 'Medical Confirmation Screen Two') {
+                    $cond = [];
+                    $reviewResponse = strtolower($configParams['input']['reviewProposalResponse'] ?? '');
+                    
+                    foreach ($configParams['input'] as $key => $val) {
+                        $valLower = strtolower($val);
+                        if ($reviewResponse === 'yes' && $key !== 'reviewProposalResponse') {
+                            if (in_array($valLower, ['yes', 'yes_edit', 'no_edit'])) {
+                                $cond[] = "medical_dispute";
+                            } elseif ($valLower === 'no') {
+                                $cond[] = 'clearcase';
+                            }
+                        } elseif ($reviewResponse === 'no') {
+                            $cond[] = 'clearcase';
+                            $configParams['agree_status'] = false;
+                        }
+                    }
+                    
+                    if ($reviewResponse === 'no' && !in_array('medical_dispute', $cond)) {
+                        $agreename = 'cMedicalQuestionTwo';
+                        if (!isset($resArr['ePerDet']) && !isset($resArr['eMedQuest']) && !isset($resArr['eMedicalQuestionOne'])) {
+                            $this->clearDisAgreeStatus($linkId);
+                        }
+                    } elseif ($reviewResponse === 'yes' && in_array('medical_dispute', $cond)) {
+                        $agreename = 'eMedicalQuestionTwo';
+                        $this->setDisAgreeStatus($linkId);
+                    }
+                    
+                    $resArr[$agreename] = $configParams;
+                }
+        
+                $resJson = json_encode($resArr);
+                $this->updateResponse($linkId, $resJson);
+        
+                return true;
+            }
+            
+            return false;
+        }
+        
 
 }
 
