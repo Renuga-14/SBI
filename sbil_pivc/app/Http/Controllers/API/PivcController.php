@@ -618,7 +618,95 @@ class PivcController extends Controller
 
 
            }
-           public function updateEditLinkResponse(Request $request)
+           public function updateEditLinkResponse(Request $request) {
+                // 1. Validate required fields
+    $validator = Validator::make($request->all(), [
+        'sbil_key'      => 'required',
+        'sbil_ekey'     => 'required|in:ePerDet,ePolDet,eMedQuest,eProdBenef,eBenIll',
+        'sbil_epage'    => 'required|string',
+        'sbil_edata'    => 'required|string' // raw JSON string
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'status' => false,
+            'msg'    => 'Please supply all the required values. Please try later!',
+            'errors' => $validator->errors()
+        ]);
+    }
+
+    // 2. Convert JSON string to array
+    $sbil_edata_raw = $request->input('sbil_edata');
+    $sbil_edata = json_decode($sbil_edata_raw, true);
+  
+    if (!is_array($sbil_edata)) {
+        return response()->json([
+            'status' => false,
+            'msg'    => 'Invalid JSON format in sbil_edata'
+        ]);
+    }
+
+    $fields_to_check = [
+        'in_name',
+        'in_gender',
+        'in_occupation',
+        'in_nominee_name',
+        'in_nominee_relation',
+        'in_mobile_no',
+        'in_address',
+        'in_address1',
+        'in_address2',
+        'in_address3'
+    ];
+
+    $alpha_numeric = true;
+
+    foreach ($fields_to_check as $field) {
+        if (isset($sbil_edata[$field]) && !$this->alphaNumericCheck($sbil_edata[$field])) {
+            $alpha_numeric = false;
+            break;
+        }
+    }
+
+    if (!$alpha_numeric) {
+        return response()->json(['status' => false, 'msg' => 'Invalid Arguments. Please try again!']);
+    }
+    // print_r( $fields_to_check);die;
+    // 4. Everything passed: proceed with logic
+    $link_key       = $request->input('sbil_key');
+    $link_configKey = $request->input('sbil_ekey');
+    $post_data      = $request->all(); // all request data
+ 
+    // Do something with $link_key, $link_configKey, $post_data...
+
+  
+    if (!empty($link_key)) {
+        $link_details = $this->linkService->checkLinkKeyExist($link_key);
+    if ($link_details) {
+        $link_id = $link_details['id'];
+
+        $configParams = [
+            'page'       => $request->input('sbil_epage') ?? null,
+            'input'      => $request->filled('sbil_edata') ? json_decode($request->input('sbil_edata'), true) : null,
+            'created_on' => Carbon::now()->toDateTimeString(),
+        ];
+
+        $this->linkService->setDisAgreeStatus($link_id);
+        $config_response = $this->linkService->updateLinkResponse($link_id, $link_configKey, $configParams);
+
+        if ($config_response === true) {
+            return response()->json(['status' => true, 'msg' => 'Updated the link Response!']);
+        } else {
+            return response()->json(['status' => false, 'msg' => 'Link response is not updated!']);
+        }
+    } else {
+        return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+    }
+}
+return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+   
+           }
+      /*      public function updateEditLinkResponse(Request $request)
            {
                  // Validate input data
                $validatedData = $request->validate([
@@ -634,7 +722,7 @@ class PivcController extends Controller
                $link_key = trim($validatedData['sbil_key']);
                $link_configKey = $validatedData['sbil_ekey'];
                $sbil_edata = $request->input('sbil_edata') ? json_decode($request->input('sbil_edata'), true) : null;
-
+             
                // Validate alphanumeric fields
                $fieldsToCheck = [
                    'in_name', 'in_gender', 'in_occupation', 'in_nominee_name',
@@ -642,7 +730,7 @@ class PivcController extends Controller
                    'in_address1', 'in_address2', 'in_address3'
                ];
 
-
+             
                foreach ($fieldsToCheck as $field) {
 
                    if (!isset($sbil_edata[$field]) ) {
@@ -679,7 +767,13 @@ class PivcController extends Controller
                }
 
                return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+           } */
+
+           public function alphaNumericCheck($input)
+           {
+               return preg_match('/^[a-zA-Z0-9 ]*$/', $input);
            }
+           
 
            public function rinnRikshaQuestions(Request $request) {
             $reqParams = ['sbil_key', 'sbil_cpage', 'sbil_data'];

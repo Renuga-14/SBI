@@ -458,8 +458,8 @@ public function updateRegPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoPar
     $info_arr = [];  
     if (!$mediaAppend) {
         $infoParams['media_url'] = $mediaUrl;
-        array_push($infoArr, $infoParams);
-        $mediaListStr = json_encode($infoArr);
+        array_push($info_arr, $infoParams);
+        $mediaListStr = json_encode($info_arr);
        
         return $this->commonRepository->updateRecord(config('constants.LINKS_TABLE'), ['id' => $id], ['reg_photo_url' => $mediaListStr]);
 
@@ -486,7 +486,7 @@ public function updateRegPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoPar
             $media_list_arr = json_decode($media_list_str, true);
             $media_list_arr = $this->removeImageJson($media_list_str, $infoParams['screen']);
         }
-
+       
         // Add new media to the array
         $infoParams['media_url'] = $mediaUrl;
         array_push($media_list_arr, $infoParams);
@@ -504,7 +504,8 @@ public function updateRegPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoPar
 
             // Update the 'consent_image_url' column
             $link->update(['consent_image_url' => $media_list_str1]);
-        }//print_r($media_list_str);die;
+        }
+        // print_r($media_list_str);die;
 
         // Update the 'reg_photo_url' column
         // $link->update(['reg_photo_url' => $media_list_str]);

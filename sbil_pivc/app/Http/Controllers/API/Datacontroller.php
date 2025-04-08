@@ -234,12 +234,13 @@ public function addCapturedImage(Request $request)
     }
 
     $metaDetails = [
-        'lat' => $validatedData['sbil_lat'] ?? 0,
-        'long' => $validatedData['sbil_long'] ?? 0,
-        'loc' => $validatedData['sbil_loc'] ?? '',
-        'lang' => $validatedData['sbil_lang'] ?? '',
-        'scrn' => $validatedData['sbil_scrn'] ?? ''
+        'lat'  => $request->input('sbil_lat', 0),
+        'long' => $request->input('sbil_long', 0),
+        'loc'  => $request->input('sbil_loc', ''),
+        'lang' => $request->input('sbil_lang', ''),
+        'scrn' => $request->input('sbil_scrn', ''),
     ];
+   
 // print_r($metaDetails);die;
     if (!empty($linkKey) && $linkImgData !== false) { 
         $linkDetail = $this->KfdService->checkLinkKeyExist($linkKey);
@@ -270,7 +271,7 @@ public function addCapturedImage(Request $request)
                         'screen'    => $metaDetails['scrn'],
                         'language'  => $metaDetails['lang']
                     ];
-                
+                    // print_r($infoParam);die;
                     if (config('app.env') === 'local') {
                         $regImgName = $imageDetails['name'];
                     } else {
@@ -308,7 +309,7 @@ public function getAllImages(Request $request)
     $validatedData = $validator->validated();
     $linkKey = trim($validatedData['sbil_key']);
     $linkDetails = $this->KfdService->checkLinkKeyExist($linkKey);
-
+   
     if (!$linkDetails) {
         return response()->json([
             'status' => false,
@@ -316,12 +317,12 @@ public function getAllImages(Request $request)
         ], 404);
     }
 
-
+    // print_r($linkDetails);die;
     $consent = !empty($linkDetails['consent_image_url']) ? json_decode($linkDetails['consent_image_url'], true) : [];
     $reg = !empty($linkDetails['reg_photo_url']) ? json_decode($linkDetails['reg_photo_url'], true) : [];
 
     $allImages = array_merge($consent, $reg);
-   // print_r($allImages);die;
+
     $finalArr = array_map(function ($row) {
         unset($row['latitude'], $row['longitude'], $row['location'], $row['language']);
         return $row;
