@@ -228,7 +228,7 @@ public function addCapturedImage(Request $request)
     $linkImg = str_replace('data:image/jpeg;base64,', '', $validatedData['sbil_reg_img']);
     $linkImg = str_replace(' ', '+', $linkImg);
     $linkImgData = base64_decode($linkImg);
-    $linkMediaAppend = $request->input('sbil_media_append') === 'true';
+    $linkMediaAppend = ($request->input('sbil_media_append')=='true')? TRUE : FALSE;
     if (!$linkImgData) {
         return response()->json(['status' => false, 'msg' => 'Invalid image data!']);
     }
@@ -278,7 +278,8 @@ public function addCapturedImage(Request $request)
                         CommonHelper::localFileDelete($imageDetails['path']);
                         $regImgName = $imageDetails['url'];
                     }
-                    $linkMediaUrlUpdate = app(DataService::class)->updateConsentPhotoUrl($link_id,$regImgName,$linkMediaAppend,$infoParam);
+                   
+                    $linkMediaUrlUpdate = app(DataService::class)->updateRegPhotoUrl($link_id,$regImgName,$linkMediaAppend,$infoParam);
                                           
                     return response()->json(['status' => true, 'msg' => 'Successfully added the captured user image!']);
                 } else {
@@ -290,8 +291,46 @@ public function addCapturedImage(Request $request)
 
         }
     }
+}
 
 
+public function getAllImages(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'sbil_key' => 'required',
+
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['status' => false, 'msg' => 'Please supply all the required values. Please try later!']);
+    }
+
+    $validatedData = $validator->validated();
+    $linkKey = trim($validatedData['sbil_key']);
+    $linkDetails = $this->KfdService->checkLinkKeyExist($linkKey);
+
+    if (!$linkDetails) {
+        return response()->json([
+            'status' => false,
+            'msg' => 'Given Link is not valid!'
+        ], 404);
+    }
+
+
+    $consent = !empty($linkDetails['consent_image_url']) ? json_decode($linkDetails['consent_image_url'], true) : [];
+    $reg = !empty($linkDetails['reg_photo_url']) ? json_decode($linkDetails['reg_photo_url'], true) : [];
+
+    $allImages = array_merge($consent, $reg);
+   // print_r($allImages);die;
+    $finalArr = array_map(function ($row) {
+        unset($row['latitude'], $row['longitude'], $row['location'], $row['language']);
+        return $row;
+    }, $allImages);
+
+    return response()->json([
+        'status' => true,
+        'image_load' => $finalArr
+    ], 200);
 }
 
 

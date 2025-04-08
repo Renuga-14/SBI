@@ -173,11 +173,11 @@ class DataService
         return $res;
     }
     
-        public function updateConsentPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoParams)
+    public function updateConsentPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoParams)
     {
         $infoArr = [];
         $table = 'links'; // Replace with the actual table name
-
+       
         if (!$mediaAppend) {
             $infoParams['media_url'] = $mediaUrl;
             array_push($infoArr, $infoParams);
@@ -187,33 +187,34 @@ class DataService
 
         } else {
             $arr = ['Medical Questionnaire', 'Welcome Screen', 'Benefit Illustration'];
-
+            
             $res = DB::table(config('constants.LINKS_TABLE'))
                 ->where('id', $id)
                 ->select('id', 'consent_image_url', 'reg_photo_url')
                 ->first();
-
+                
             $mediaListStr = $res->consent_image_url ?? '';
             $mediaListArr = [];
-
+           
             if (!empty($mediaListStr)) {
                 $mediaListArr = $this->removeImageJson($mediaListStr, $infoParams['screen']);
             }
-
+            // print_r($mediaListArr);
+            // die;
             $infoParams['media_url'] = $mediaUrl;
             array_push($mediaListArr, $infoParams);
             $mediaListStr = json_encode($mediaListArr);
 
-            $mediaListStr1 = $res->reg_photo_url ?? '';
+            $mediaListStr1 = $res->reg_photo_url ?? '';  //print_r($mediaListStr1);die;
             $mediaListArr1 = json_decode($mediaListStr1, true) ?? [];
             $mediaListArr1 = array_values($mediaListArr1);
             $screen = [];
 
-
+          
             foreach ($mediaListArr1 as $key) {
                 $screen[] = preg_replace('/ - Disagree/', '', trim($key['screen']));
             }
-
+          
             if (in_array($infoParams['screen'], $arr) && in_array($infoParams['screen'], $screen)) {
                 $mediaListArr1 = $this->removeImageJson($mediaListStr1, $infoParams['screen']);
                 $mediaListStr1 = json_encode($mediaListArr1);                
@@ -224,13 +225,13 @@ class DataService
     }
 
     public function removeImageJson($media_list_str, $info_params_screen)
-{
+{ 
     // Decode JSON and validate
     $temp_list = json_decode($media_list_str, true);
     if (!is_array($temp_list)) {
         return []; // Return empty array if decoding fails
     }
-
+   
     $media_list_arr = [];
 
     // Build the media list array
@@ -244,8 +245,8 @@ class DataService
             $media_list_arr[$screen] = $rs;
         }
     }
-
-
+    
+   
     // Determine removal target
     $rmv_screen = $this->chgName($info_params_screen);
     $rmv_screen_count = substr_count($info_params_screen, '-');
@@ -449,6 +450,68 @@ public function captureImageFile($linkId, $scrn = null)
     return $fileData;
 }
 
+
+
+public function updateRegPhotoUrl($id, $mediaUrl, $mediaAppend = false, $infoParams)
+{  
+   
+    $info_arr = [];  
+    if (!$mediaAppend) {
+        $infoParams['media_url'] = $mediaUrl;
+        array_push($infoArr, $infoParams);
+        $mediaListStr = json_encode($infoArr);
+       
+        return $this->commonRepository->updateRecord(config('constants.LINKS_TABLE'), ['id' => $id], ['reg_photo_url' => $mediaListStr]);
+
+    } else { 
+        // If appending, handle the existing media list and append the new media URL
+        $arr = ['Medical Questionnaire', 'Welcome Screen', 'Benefit Illustration'];
+        // print_r($arr);die;
+        // Retrieve the current media data
+      /*   $link = Link::find($id);
+        if (!$link) {
+            return null; // If link not found, return null
+        } */
+
+        $link = DB::table(config('constants.LINKS_TABLE'))
+        ->where('id', $id)
+        ->select('id', 'consent_image_url', 'reg_photo_url')
+        ->first();
+
+        $media_list_str = $link->reg_photo_url;
+        $media_list_arr = [];
+
+        // If there are existing photos, decode and remove the existing one if necessary
+        if (!empty($media_list_str)) {
+            $media_list_arr = json_decode($media_list_str, true);
+            $media_list_arr = $this->removeImageJson($media_list_str, $infoParams['screen']);
+        }
+
+        // Add new media to the array
+        $infoParams['media_url'] = $mediaUrl;
+        array_push($media_list_arr, $infoParams);
+
+        // Re-encode the updated media list
+        $media_list_str = json_encode($media_list_arr);
+        
+        // Check if the screen is one of the predefined values
+        if (in_array($infoParams['screen'], $arr)) {
+            $media_list_str1 = $link->consent_image_url;
+
+            // Remove the existing image if necessary
+            $media_list_arr1 = $this->removeImageJson($media_list_str1, $infoParams['screen']);
+            $media_list_str1 = json_encode($media_list_arr1);
+
+            // Update the 'consent_image_url' column
+            $link->update(['consent_image_url' => $media_list_str1]);
+        }//print_r($media_list_str);die;
+
+        // Update the 'reg_photo_url' column
+        // $link->update(['reg_photo_url' => $media_list_str]);
+        return $this->commonRepository->updateRecord(config('constants.LINKS_TABLE'), ['id' => $id], ['reg_photo_url' => $media_list_str]);
+        // return $link;
+    }
+}
 
 
 }

@@ -720,9 +720,95 @@ class PivcController extends Controller
             
             return response()->json(['status' => false, 'msg' => 'Invalid Page.']);
         }
+        public function getAllImages(Request $request)
+        {
+            $req_params = ['sbil_key'];
+
+            // Check if the required parameter is present
+            if ($request->has('sbil_key')) {
+                $validator = Validator::make($request->all(), [
+                    'sbil_key' => 'required|alpha_num'
+                ]);
+
+                if ($validator->fails()) {
+                    return response()->json([
+                        'status' => false,
+                        'msg' => 'Please supply all the required values. Please try later!'
+                    ]);
+                }
+
+                $link_key = trim($request->input('sbil_key', ''));
+
+                if ($link_key !== '') {
+                    $link_details = $this->pivc_model->checkLinkKeyExist($link_key);
+
+                    if ($link_details && !empty($link_details['consent_image_url'])) {
+                        $consent = json_decode($link_details['consent_image_url'], true) ?? [];
+                    } else {
+                        $consent = [];
+                    }
+
+                    if ($link_details && !empty($link_details['reg_photo_url'])) {
+                        $reg = json_decode($link_details['reg_photo_url'], true) ?? [];
+                    } else {
+                        $reg = [];
+                    }
+
+                    // Merge consent and reg arrays
+                    $all = array_merge($consent, $reg);
+                    $final_arr = [];
+
+                    foreach ($all as $row) {
+                        unset($row['latitude'], $row['longitude'], $row['location'], $row['language']);
+                        $final_arr[] = $row;
+                    }
+
+                    if (!empty($final_arr)) {
+                        return response()->json([
+                            'status' => true,
+                            'image_load' => $final_arr
+                        ]);
+                    } else {
+                        return response()->json([
+                            'status' => false,
+                            'msg' => 'No images found!'
+                        ]);
+                    }
+                } else {
+                    return response()->json([
+                        'status' => false,
+                        'msg' => 'Given Link is not valid!'
+                    ]);
+                }
+            } else {
+                return response()->json([
+                    'status' => false,
+                    'msg' => 'Invalid Arguments. Please try again!'
+                ]);
+            }
+        }
         
         
-     
+        
+        public function updateCompleteStatus(Request $request)
+        {
+            // Define the validation rules
+            $validator = Validator::make($request->all(), [
+                'sbil_key' => 'required|alpha_num',  // sbil_key should be alphanumeric
+                'sbil_cstatus' => 'required',        // sbil_cstatus should be required
+            ]);
+
+            // If validation fails, return a response for missing or invalid arguments
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => false,
+                    'msg' => $request->has('sbil_key') && $request->has('sbil_cstatus') 
+                                ? 'Please supply all the required values. Please try later!' 
+                                : 'Invalid Arguments. Please try again!'
+                ], $request->has('sbil_key') && $request->has('sbil_cstatus') ? 422 : 400); // 422 Unprocessable Entity or 400 Bad Request
+            }
+
+        }
                 
 
           

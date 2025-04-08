@@ -12,8 +12,9 @@ Route::post('/deviceDetails', [PivcController::class, 'deviceDetails']);
 Route::post('/updateLinkResponse', [PivcController::class, 'updateLinkResponse']);
 Route::post('/updateEditLinkResponse', [PivcController::class, 'updateEditLinkResponse']);
 Route::post('/rinnRikshaQuestions', [PivcController::class, 'rinnRikshaQuestions']);
+Route::post('/updateCompleteStatus', [PivcController::class, 'updateCompleteStatus']);
 
 Route::post('/data/addConsentImage', [DataController::class, 'addConsentImage']);
 Route::post('/data/addCapturedScreenShot', [DataController::class, 'addCapturedScreenShot']);
 Route::post('/data/addCapturedImage', [DataController::class, 'addCapturedImage']);
-
+Route::post('/data/getAllImages', [DataController::class, 'getAllImages']);
