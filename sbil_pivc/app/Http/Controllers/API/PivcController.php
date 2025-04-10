@@ -5,19 +5,20 @@ namespace App\Http\Controllers\API;
 use Carbon\Carbon;
 use App\Models\Link;
 use App\Models\Product;
-// use App\Helpers\CommonHelper;
+use App\Helpers\CommonHelper;
 use App\Models\Sources;
 use App\Helpers\XMLHelper;
 use Jenssegers\Agent\Agent;
 use App\Services\KfdService;
 
 use Illuminate\Http\Request;
-use App\Helpers\CommonHelper;
+
 use App\Services\LinkService;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Crypt;
 use App\Repositories\CommonRepository;
+use Illuminate\Support\Str;
 
 use Illuminate\Support\Facades\Validator;
 
@@ -834,7 +835,7 @@ return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']
                 $link_key = trim($request->input('sbil_key', ''));
 
                 if ($link_key !== '') {
-                    $link_details = $this->pivc_model->checkLinkKeyExist($link_key);
+                    $linkDetails = $this->linkService->checkLinkKeyExist($linkKey);
 
                     if ($link_details && !empty($link_details['consent_image_url'])) {
                         $consent = json_decode($link_details['consent_image_url'], true) ?? [];
@@ -888,7 +889,7 @@ return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']
         {
             // Define the validation rules
             $validator = Validator::make($request->all(), [
-                'sbil_key' => 'required|alpha_num',  // sbil_key should be alphanumeric
+                'sbil_key' => 'required',  // sbil_key should be alphanumeric
                 'sbil_cstatus' => 'required',        // sbil_cstatus should be required
             ]);
 
@@ -902,7 +903,189 @@ return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']
                 ], $request->has('sbil_key') && $request->has('sbil_cstatus') ? 422 : 400); // 422 Unprocessable Entity or 400 Bad Request
             }
 
+            $link_key = trim($request->input('sbil_key'));
+            if (empty($link_key)) {
+                return response()->json([
+                    'status' => false,
+                    'msg' => 'Given Link is not valid!'
+                ]);
+            }
+
+            $link_status = $request->input('sbil_cstatus') ? 1 : 0;
+            // $linkKeyDetails = Pivc::checkLinkKeyExist($link_key);
+            $linkKeyDetails = $this->KfdService->checkLinkKeyExist($link_key);
+            if (!$linkKeyDetails) {
+                return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
+            }
+            $link_id = $linkKeyDetails['id'];
+                // Video calling
+
+                // $params = json_decode($linkKeyDetails->params ?? '{}', true);
+                $params = json_decode($linkKeyDetails['params'], true);
+                $slug = $params['flow_key'] ?? '';
+                $proposal_no = $params['proposal_no'] ?? '';
+           
+           
+            if (
+                isset($params['flow_key']) &&
+                strpos($params['flow_key'], '_smart_annuity_plus') !== false &&
+                isset($params['flow_data']['PLAN']) &&
+                $params['flow_data']['PLAN'] !== ''
+            ) {
+                $slug = $params['flow_key'] . ' ' . $params['flow_data']['PLAN'];
+            }
+            $_product_array = array(
+                'sbilm_retire_smart_plus', 'sbilsa_retire_smart_plus', 'sbilpl_retire_smart_plus', 
+                'sbilo_retire_smart_plus', 'sbilm_retire_smart', 'sbilsa_retire_smart', 
+                'sbilpl_retire_smart', 'sbilo_retire_smart', 'sbilo_smart_annuity_plus 1.2', 
+                'sbilm_smart_annuity_plus 1.2', 'sbilsa_smart_annuity_plus 1.2', 'sbilpl_smart_annuity_plus 1.2','sbilo_smart_annuity_plus 1.3', 
+                'sbilm_smart_annuity_plus 1.3', 'sbilsa_smart_annuity_plus 1.3', 'sbilpl_smart_annuity_plus 1.3',
+                'sbilo_smart_annuity_plus 1.10', 
+                'sbilm_smart_annuity_plus 1.10', 'sbilsa_smart_annuity_plus 1.10', 'sbilpl_smart_annuity_plus 1.10',
+                'sbilo_smart_annuity_plus 2.2', 
+                'sbilm_smart_annuity_plus 2.2', 'sbilsa_smart_annuity_plus 2.2', 'sbilpl_smart_annuity_plus 2.2',
+                'sbilo_smart_annuity_plus 2.3', 
+                'sbilm_smart_annuity_plus 2.3', 'sbilsa_smart_annuity_plus 2.3', 'sbilpl_smart_annuity_plus 2.3',
+                'sbilm_smart_platina_plus','sbilpl_smart_platina_plus','sbilsa_smart_platina_plus'
+            );
+            
+
+            if (in_array($slug, $_product_array)) {
+                $pivcCompleteStatus = $this->linkService->setCompleteStatus($link_id);
+                // $this->callJobTranscript($proposal_no);
+            } else {
+                $pivcCompleteStatus = $this->linkService->setCompleteStatus($link_id);
+            }
+            if (!$pivcCompleteStatus) {
+                return response()->json([
+                    'status' => false,
+                    'msg' => 'Given Link is not Completed!',
+                    'data' => $pivcCompleteStatus // Optional: for debugging
+                ]);
+            }
+            $link_details = $this->linkService->getPIVCLinkDetail($link_id); 
+            $link_details = (array) $link_details;
+
+            if (in_array($link_details['source'], [2, 3, 5, 6, 8, 9, 10]) && $pivcCompleteStatus) {
+                $params_arr = json_decode($link_details['params'], true);
+                // $mobile_no = check_had_value($params_arr['flow_data']['MOBILE_NUMBER']);
+            
+              /*   if (Str::contains($link_details['link'], 'adc')) {
+                    $responseArr = json_decode($link_details['response'], true);
+                    if ($mobile_no && (pivcRemarks(1, $responseArr) !== 'Mismatch')) {
+                        $smsMsg = smsLinkCompleteMsgTemplate($link_details['proposal_no'], 
+                            in_array($link_details['source'], [2, 5, 6, 9, 10]) ? config('constants.SBIL_MCONNECT_TFN') : null
+                        );
+            
+                        app(\App\Services\PivcService::class)->sendSms($mobile_no, $smsMsg);
+                    }
+                } */
+            
+                $resArr = json_decode($link_details['response'], true);
+                $paramsdata = json_decode($link_details['params'], true);
+              
+                if (isset($paramsdata['flow_key']) && Str::contains(strtolower($paramsdata['flow_key']), '_rinn_raksha')) {
+                    $statusremark =  CommonHelper::pivcRinnRakshaRemarks(1, $link_details['disagree_status'], $resArr, now()->format('m/d/Y H:i'));
+                  
+                    $statusData = [
+                        'FORM_NUM'           => $paramsdata['flow_data']['FORMNUMBER'],
+                        'PL_POL_NUM'         => $paramsdata['flow_data']['RD_MASTER_POLICY_NO'],
+                        'LOAN_ACCT_NUM'      => $paramsdata['flow_data']['LOANACCOUNTNUMBER'],
+                        'LOAN_PLUS_ACCT_NUM' => $paramsdata['flow_data']['LOANACCOUNTNUMBER'],
+                        'PIWC_CALL_FLAG'     => $statusremark['piwc_call_flag'],
+                        'PIWC_MED_FLAG'      => $statusremark['piwc_med_flag'],
+                        'LATEST_CALL_DATE'   => now()->format('m/d/Y'),
+                        'CALL_TIME'          => now()->format('H:i'),
+                        'CUST_NAME'          => $paramsdata['flow_data']['POLICY_HOLDER_NAME'],
+                        'RESIDENCE_CONTACT'  => "0",
+                        'OFFICE_CONTACT'     => "0",
+                        'MOBILE_NO'          => $paramsdata['flow_data']['MOBILE_NUMBER'],
+                        'PRECALLING_STATUS'  => $statusremark['precalling'],
+                        'MAIN_REASON'        => $statusremark['mainreason'],
+                        'SUB_REASON'         => $statusremark['sub_reason'],
+                        'CALLING_REMARKS'    => $statusremark['remarks'],
+                        'SOURCE'             => "Anoor",
+                    ];
+                    $this->linkService->updateGroupPIWCDetailsInsta($statusData);
+                    $REMARKS = $statusData['MAIN_REASON'];
+            
+                } else {
+                    $product_array = [155];
+                    $allowedStatusType = [
+                        2 => 'MCNCT',
+                        3 => 'ONLINE',
+                        5 => 'SMTADV',
+                        6 => 'PHYSICAL'
+                    ];
+            
+                    $pivcStatus = CommonHelper::pivcFullRemarkStatus(1, $link_details['disagree_status'], $resArr);
+                    $productCheck = empty($link_details['response']) && in_array($link_details['product_id'], $product_array);
+            
+                    if ($pivcStatus === 'Y' || $productCheck) {
+                        $vd_verif = 'N';
+                    } elseif ($pivcStatus === 'N') {
+                        $vd_verif = 'D';
+                    } else {
+                        $vd_verif = 'N';
+                    }
+            
+                    $PIVC_CALL_FLAG = $productCheck ? 'Y' : $pivcStatus;
+                    $REMARKS = $productCheck ? 'Clear Case' : (CommonHelper::pivcFullRemarks(1, $link_details['disagree_status'], $resArr));
+            
+                    $statusData = [
+                        'VD_SUBMIT_DATE'       => now()->format('m/d/Y'),
+                        'PIVC_CALL_FLAG'       => $PIVC_CALL_FLAG,
+                        'PIVC_TYPE'            => $allowedStatusType[$link_details['source']] ?? null,
+                        'REMARKS'              => $REMARKS,
+                        'FacialScorePercentage'=> 0,
+                        'VD_Verif'             => $vd_verif,
+                    ];
+                    $this->linkService->updatePIVCStatusAPI($link_details['proposal_no'], $statusData);
+           
+                    $REMARKS = $statusData['REMARKS'];
+                }
+                return response()->json([
+                    'status'       => true,
+                    'completed_on' => $link_details['completed_on'] ?? null,
+                    'pivc_remarks' => $REMARKS ?? null,
+                    'msg'          => 'Updated the link status!'
+                ]);
+            }
+            
+
         }
+
+        public function callJobTranscript($proposal_no)
+        {
+            $url = 'https://pivc.sbilife.co.in/portal/cron/job/generateTranscriptPDF_VideoCalling/' . $proposal_no;
+          //  echo $url;die;
+           // echo 'https://pivc.sbilife.co.in/portal/cron/job/generateTranscriptPDF_VideoCalling/' . $proposal_no;die;
+            $curl = curl_init();
+    
+            curl_setopt_array(
+                $curl,
+                array(
+                    CURLOPT_URL => $url,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_ENCODING => '',
+                    CURLOPT_MAXREDIRS => 10,
+                    CURLOPT_TIMEOUT => 0,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                    CURLOPT_CUSTOMREQUEST => 'GET',
+                    CURLOPT_HTTPHEADER => array(
+                        'Content-Type: application/json'
+                    ),
+                )
+            );
+    
+            $response = curl_exec($curl);
+           
+            curl_close($curl);
+          // print_r($response. "1");exit;
+            return $response;
+        }
+    
                 
 
           

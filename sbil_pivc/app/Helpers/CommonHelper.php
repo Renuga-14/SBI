@@ -5,7 +5,7 @@ namespace App\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
-
+use Illuminate\Support\Facades\Log;
 class CommonHelper
 {
     const ENCRYPT_METHOD = 'AES-256-CBC';
@@ -120,6 +120,150 @@ class CommonHelper
 
         return $ret;
     }
+    public static function pivcRinnRakshaRemarks($completeStatus, $disStatus, $resArr, $date)
+    {
+        $rinnrak = [];
+        $arr = ['ePerDet', 'eMedQuest', 'eSmsOtp', 'eMedicalQuestionOne', 'eMedicalQuestionTwo'];
 
+        if ($completeStatus) {
+            if ($disStatus) {
+                if (!empty($resArr)) {
+                    $list = [];
+                    foreach ($arr as $vR) {
+                        if (isset($resArr[$vR])) {
+                            $list[] = $vR;
+                        }
+                    }
+
+                    if (count($list) == 1 && in_array('ePerDet', $list)) {
+                        $rinnrak = [
+                            'piwc_call_flag' => 'Y',
+                            'precalling' => 'Y',
+                            'piwc_med_flag' => 'N',
+                            'mainreason' => 'CLEAR CASE',
+                            'sub_reason' => 'MAJOR CORRECTION',
+                            'remarks' => "PIV Clear Insta Completed on " . $date
+                        ];
+                    } elseif (!in_array('ePerDet', $list) && count($list) >= 1) {
+                        $rinnrak = [
+                            'piwc_call_flag' => 'Y',
+                            'precalling' => 'Y',
+                            'piwc_med_flag' => 'Y',
+                            'mainreason' => 'MEDICAL DISPUTE',
+                            'sub_reason' => 'NA',
+                            'remarks' => "PIV Clear Insta Completed on " . $date
+                        ];
+                    } elseif (count($list) > 1) {
+                        $rinnrak = [
+                            'piwc_call_flag' => 'Y',
+                            'precalling' => 'Y',
+                            'piwc_med_flag' => 'Y',
+                            'mainreason' => 'MEDICAL DISPUTE',
+                            'sub_reason' => 'MAJOR CORRECTION',
+                            'remarks' => "PIV Clear Insta Completed on " . $date
+                        ];
+                    }
+                }
+            } else {
+                $rinnrak = [
+                    'piwc_call_flag' => 'Y',
+                    'precalling' => 'Y',
+                    'piwc_med_flag' => 'N',
+                    'mainreason' => 'CLEAR CASE',
+                    'sub_reason' => 'NA',
+                    'remarks' => "PIV Clear Insta Completed on " . $date
+                ];
+            }
+        } else {
+            $rinnrak = [
+                'piwc_call_flag' => 'Y',
+                'precalling' => 'Y',
+                'piwc_med_flag' => 'N',
+                'mainreason' => 'Clear Case',
+                'sub_reason' => 'NA',
+                'remarks' => "PIV Clear Insta Completed on " . $date
+            ];
+        }
+
+        return $rinnrak;
+    }
+    public static function pivcFullRemarkStatus($completeStatus, $disStatus, array $resArr)
+    {
+        $result = '';
+        $expectedKeys = ['ePerDet', 'ePolDet', 'eMedQuest', 'eBenIll', 'eProdBenef', 'eSmsOtp'];
+
+        if ($completeStatus) {
+            if (!empty($resArr)) {
+                $matchedKeys = [];
+
+                foreach ($expectedKeys as $key) {
+                    if (array_key_exists($key, $resArr)) {
+                        $matchedKeys[] = $key;
+                    }
+                }
+
+                $count = count($matchedKeys);
+
+                if ($count === 1 && in_array('ePerDet', $matchedKeys)) {
+                    $result = 'Y';
+                } elseif ($count === 1 && in_array('eMedQuest', $matchedKeys)) {
+                    $result = 'M';
+                } elseif ($count === 2 && in_array('ePerDet', $matchedKeys) && in_array('eMedQuest', $matchedKeys)) {
+                    $result = 'M';
+                } elseif ($count === 2 && in_array('eMedQuest', $matchedKeys) && in_array('eSmsOtp', $matchedKeys)) {
+                    $result = 'M';
+                } elseif ($count >= 1) {
+                    $result = 'N';
+                } else {
+                    $result = 'Y';
+                }
+            }
+        } else {
+            $result = 'N';
+        }
+
+        return $result;
+    }
+
+    public static function pivcFullRemarks($completeStatus, $disStatus, array $resArr)
+    {
+        $result = '';
+        $expectedKeys = ['ePerDet', 'ePolDet', 'eMedQuest', 'eBenIll', 'eProdBenef', 'eSmsOtp'];
+
+        if ($completeStatus) {
+            if (!empty($resArr)) {
+                $matchedKeys = [];
+
+                foreach ($expectedKeys as $key) {
+                    if (isset($resArr[$key])) {
+                        $matchedKeys[] = $key;
+                    }
+                }
+
+                $count = count($matchedKeys);
+
+                if ($count === 1 && in_array('ePerDet', $matchedKeys)) {
+                    $result = 'Major Correction';
+                } elseif ($count === 1 && in_array('eMedQuest', $matchedKeys)) {
+                    $result = 'Medical Dispute';
+                } elseif ($count === 2 && in_array('ePerDet', $matchedKeys) && in_array('eMedQuest', $matchedKeys)) {
+                    $result = 'Medical Dispute';
+                } elseif ($count >= 1 && in_array('eMedQuest', $matchedKeys) && in_array('eSmsOtp', $matchedKeys)) {
+                    $result = 'Medical Dispute';
+                } elseif ($count >= 1) {
+                    $result = 'Mismatch';
+                } else {
+                    $result = 'Clear Case';
+                }
+
+                unset($matchedKeys);
+            }
+        } else {
+            $result = 'Customer not available';
+        }
+
+        return $result;
+    }
+    
 
 }

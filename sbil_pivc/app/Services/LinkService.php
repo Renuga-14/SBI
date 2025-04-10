@@ -11,7 +11,9 @@ use App\Helpers\CommonHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Crypt;
 use App\Repositories\CommonRepository;
-
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
+ 
 class LinkService
 {
     protected $commonRepository;
@@ -437,6 +439,161 @@ class LinkService
             return false;
         }
         
+  public function setCompleteStatus($link_id)
+  {
+      $cDate = Carbon::now();
+
+      $link = Link::select('source', 'product_id', 'params', 'video_url', 'consent_image_url', 'reg_photo_url')
+                  ->where('id', $link_id)
+                  ->first();
+
+      if (!$link) {
+
+          return response()->json(['error' => 'Link not found'], 404);
+      }
+
+      $p_id = $link->product_id;
+      $s_id = $link->source;
+      $video = $link->video_url;
+
+      $params = json_decode($link->params);
+      $flowdata = $params->flow_data ?? null;
+
+      // Determine risk profile
+      if (isset($flowdata->RISK_PROFILE) && strtolower($flowdata->RISK_PROFILE) === 'high') {
+          $risk = strtolower($flowdata->RISK_PROFILE);
+      } else {
+          $risk = 'low';
+      }
+
+      // Decode JSON fields from DB
+      $consent = $link->consent_image_url;
+      $reg = $link->reg_photo_url;
+
+      $con_obj = json_decode($consent, true);
+      $reg_obj = json_decode($reg, true);
+
+      // Define product ID array
+      $arr_p_id = [5, 67, 68, 69, 70, 79, 80, 81, 82, 143, 144, 147, 148];
+     
+      if (!empty($link->consent_image_url) || !empty($link->reg_photo_url)) {
+          // Update the record using Eloquent
+          return $this->commonRepository->updateRecord(config('constants.LINKS_TABLE'), ['id' => $link_id], array('complete_status'=>1,'completed_on'=>$cDate));
+       /*    return $this->common_model->update(LINKS_TABLE, array('id'=>$link_id), array('complete_status'=>1,'completed_on'=>$cDate));
+          $link->update([
+              'complete_status' => 1,
+              'completed_on' => $cDate, // Assuming the table has this column
+          ]);
+          print_r($link);die; */
+          return true;
+      } else {
+          return false;
+      }
+
+  }
+  public function updateGroupPIWCDetailsInsta(array $pivcData): bool
+  {
+      $params = [
+          'UpdateGroupPIWCDetails_Insta' => [
+              'FORM_NUM'          => $pivcData['FORM_NUM'],
+              'PL_POL_NUM'        => $pivcData['PL_POL_NUM'],
+              'LOAN_ACCT_NUM'     => $pivcData['LOAN_ACCT_NUM'],
+              'LOAN_PLUS_ACCT_NUM'=> $pivcData['LOAN_PLUS_ACCT_NUM'],
+              'PIWC_CALL_FLAG'    => $pivcData['PIWC_CALL_FLAG'],
+              'PIWC_MED_FLAG'     => $pivcData['PIWC_MED_FLAG'],
+              'LATEST_CALL_DATE'  => $pivcData['LATEST_CALL_DATE'],
+              'CALL_TIME'         => $pivcData['CALL_TIME'],
+              'CUST_NAME'         => $pivcData['CUST_NAME'],
+              'RESIDENCE_CONTACT' => $pivcData['RESIDENCE_CONTACT'],
+              'OFFICE_CONTACT'    => $pivcData['OFFICE_CONTACT'],
+              'MOBILE_NO'         => $pivcData['MOBILE_NO'],
+              'PRECALLING_STATUS' => $pivcData['PRECALLING_STATUS'],
+              'MAIN_REASON'       => $pivcData['MAIN_REASON'],
+              'SUB_REASON'        => $pivcData['SUB_REASON'],
+              'CALLING_REMARKS'   => $pivcData['CALLING_REMARKS'],
+              'SOURCE'            => $pivcData['SOURCE'],
+          ]
+      ];
+
+      $response = Http::withHeaders([
+        'X-IBM-Client-Id'     => env('SBIL_PIWC_STATUS_APID_CLIENT'),
+        'X-IBM-Client-Secret' => env('SBIL_PIWC_STATUS_APID_SECRET'),
+        'Content-Type'        => 'application/json',
+        'Accept'              => 'application/json',
+        'ServicePassword'     => env('SBIL_PIWC_STATUS_SERVICE_PASSWORD'),
+        'ServiceId'           => env('SBIL_PIWC_STATUS_SERVICE_ID'),
+    ])->withOptions([
+        'verify' => true // SSL Verification - use false only for local testing
+    ])->post(env('SBIL_PIWC_STATUS_URL'), $params);
+
+    $resArr = $response->json();
+
+    if (!empty($resArr['UpdateGroupPIWCDetails_InstaResult'])) {
+        if (strpos($resArr['UpdateGroupPIWCDetails_InstaResult'], 'SUCCESS') !== false) {
+            Log::channel('daily')->info('RinnRaksha PIWC Status Update SUCCESS', [
+                'params' => $params,
+                'response' => $resArr,
+            ]);
+            $this->addLog('RinnRakshapivcStatusUpdate', json_encode($params), json_encode($resArr));
+            return true;
+        } else {
+            Log::channel('daily')->error('RinnRaksha PIWC Status Update FAILED', [
+                'params' => $params,
+                'response' => $resArr,
+            ]);
+            $this->addLog('RinnRakshapivcStatusUpdate', json_encode($params), json_encode($resArr), 1);
+        }
+    } else {
+        Log::channel('daily')->error('RinnRaksha PIWC Status Empty Response', [
+            'params' => $params,
+            'response' => $resArr,
+        ]);
+        $this->addLog('RinnRakshapivcStatusUpdate', json_encode($params), json_encode($resArr), 1);
+    }
+
+      return false;
+  }
+  public function updatePIVCStatusAPI(string $proposalNo, array $pivcData): bool
+  {
+      $params = [
+          'Update_PIVC_STATUS' => [
+              "PROPOSAL_NUMBR"        => $proposalNo,
+              "VD_SUBMIT_DATE"        => $pivcData['VD_SUBMIT_DATE'] ?? null,
+              "PIVC_CALL_FLAG"        => $pivcData['PIVC_CALL_FLAG'] ?? null,
+              "PIVC_TYPE"             => $pivcData['PIVC_TYPE'] ?? null,
+              "REMARKS"               => $pivcData['REMARKS'] ?? null,
+              "FacialScorePercentage" => $pivcData['FacialScorePercentage'] ?? null,
+              "VD_Verif"              => $pivcData['VD_Verif'] ?? null,
+          ]
+      ];
+
+      $response = Http::withHeaders([
+              'x-ibm-client-id'     => env('SBIL_STATUS_APIP_CLIENT'),
+              'x-ibm-client-secret' => env('SBIL_STATUS_APIP_SECRET'),
+              'Content-Type'        => 'application/json',
+          ])
+          ->withoutVerifying() // disables SSL verification, same as `$tt->ssl(FALSE)`
+          ->post(env('SBIL_STATUS_PURL'), $params);
+
+      $resArr = $response->json();
+
+      $logTag = 'pivcStatusUpdate';
+
+      if (!empty($resArr['Update_PIVC_STATUSResult'])) {
+          if ($resArr['Update_PIVC_STATUSResult'] === 'SUCCESS') {
+              $this->addLog($logTag, $params, $resArr);
+              return true;
+          } else {
+              $this->addLog($logTag, $params, $resArr, true);
+          }
+      } else {
+          Log::channel('daily')->error("KFD -- pivcStatusUpdate -- FAILED", ['params' => $params, 'response' => $resArr]);
+          $this->addLog($logTag, $params, $resArr, true);
+      }
+
+      return false;
+  }
+
 
 }
 

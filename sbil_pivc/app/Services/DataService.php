@@ -81,11 +81,19 @@ class DataService
         $ext = '.jpeg';
         $imgName = $fileDetails['file_name'] . $ext;
         $imgPath = $imgDir . $imgName;
-        $imgUrl = asset($imgDirRel . $imgName);
-        $imgKey = $imgDirRel . $imgName;
-        // dd(config('filesystems.paths.df_path'));
+        // $imgUrl = asset($imgDirRel . $imgName);
+        $imgUrl = rtrim(config('app.url'), '/') . '/' . ltrim($imgDirRel . $imgName, '/');
 
-     
+        $imgKey = $imgDirRel . $imgName; 
+        // dd(config('filesystems.paths.df_path'));
+        // $imgUrl_path = asset($imgKey);
+      /*   $imgUrl = url(trim($dfPath, '/') . $imgDirRel . $imgName);
+        // print_r($imgUrl);die;
+        
+         $imgKey = $imgDirRel . $imgName; */
+      
+
+    //  print_r($imgUrl);die;
        
         // Save the file
         if (file_put_contents($imgPath, ($fileData))) {
@@ -96,7 +104,7 @@ class DataService
                 'url'    => $imgUrl,
                 'key'    => $imgKey
             ];
-
+            // print_r($imgFileData);die;
             // If AWS environment, upload to S3
             if (config('app.env') == 'aws') {
                 $awsFileUpload = $this->dataImageS3Upload($imgPath, $imgKey);
@@ -160,11 +168,12 @@ class DataService
             if (!file_exists(dirname($destinationPath))) {
                 mkdir(dirname($destinationPath), 0777, true);
             }
-    
+           
+            $imgUrl = rtrim(config('app.url'), '/') . '/' . ltrim($key, '/');// print_r($imgUrl);die;
             // Copy the file to the local storage
             if (copy($path, $destinationPath)) {
                 $res['status'] = true;
-                $res['url'] = asset('storage/' . $key); // Accessible via browser
+                $res['url'] = $imgUrl; // Accessible via browser
             }
         } catch (\Exception $e) {
             \Log::error("Local File Upload Error: " . $e->getMessage());
@@ -340,7 +349,8 @@ public static function chgName($str)
        $ext = '.jpeg';
        $imgName = $fileDetails['file_name'] . $ext;
        $imgPath = $imgDir . $imgName;
-       $imgUrl = asset($imgDirRel . $imgName);
+    //    $imgUrl = asset($imgDirRel . $imgName);
+    $imgUrl = rtrim(config('app.url'), '/') . '/' . ltrim($imgDirRel . $imgName, '/');
        $imgKey = $imgDirRel . $imgName;
 
         // Save the image

@@ -25,7 +25,7 @@ class KfdService
     {
 
         $result = DB::table(config('constants.LINKS_TABLE'))
-            ->select('id','consent_image_url','reg_photo_url')
+            ->select('id','consent_image_url','reg_photo_url','params','source','response','completed_on')
             ->where('ukey', $key)
             ->where('status', 1)
             ->first();

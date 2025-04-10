@@ -86,7 +86,7 @@ class DataController extends Controller
                         'file_loc'=>config('constants.DF_ADC_CONSENT_IMG_PATH')
                     );
         
-                    $imageDetails = app(DataService::class)->addConsentJPEGImageFile($file_name_data,$linkImgData,$metaDetails);
+                    $imageDetails = app(DataService::class)->addConsentJPEGImageFile($file_name_data,$linkImgData,$metaDetails); //print_r($imageDetails);die;
                     if ($imageDetails['status']) {
                         $infoParam = [
                             'latitude'  => $metaDetails['lat'],
@@ -97,7 +97,8 @@ class DataController extends Controller
                         ];
                     
                         if (config('app.env') === 'local') {
-                            $regImgName = $imageDetails['name'];
+                            $regImgName = $imageDetails['url'];
+                            // $regImgName = $imageDetails['name'];
                         } else {
                             // Delete the local file after upload
                             CommonHelper::localFileDelete($imageDetails['path']);
@@ -156,7 +157,7 @@ class DataController extends Controller
             if($linkDetail!==false)
               { 
                 $link_id = $linkDetail['id'];
-                $fileNameDetails = app(DataService::class)->captureImageScreenShotFile($link_id,$metaDetails['scrn']);
+                $fileNameDetails = app(DataService::class)->captureImageScreenShotFile($link_id,$metaDetails['scrn']); 
                 if (!$fileNameDetails['status']) {
                     return response()->json([
                         'status' => false,
@@ -168,7 +169,7 @@ class DataController extends Controller
                         'product_name'=>$fileNameDetails['p_name'],
                         'file_loc'=>config('constants.DF_ADC_CAPTURE_IMG_PATH')
                     );
-                    $imageDetails = app(DataService::class)->addCapturedJPEGImageFile($file_name_data,$linkImgData,$metaDetails);
+                    $imageDetails = app(DataService::class)->addCapturedJPEGImageFile($file_name_data,$linkImgData,$metaDetails);//print_r($imageDetails);die;
                     if ($imageDetails['status']) {
                         $infoParam = [
                             'latitude'  => $metaDetails['lat'],
@@ -179,7 +180,8 @@ class DataController extends Controller
                         ];
                     
                         if (config('app.env') === 'local') {
-                            $regImgName = $imageDetails['name'];
+                            $regImgName = $imageDetails['url'];
+                            // $regImgName = $imageDetails['name'];
                         } else {
                             CommonHelper::localFileDelete($imageDetails['path']);
                             $regImgName = $imageDetails['url']; // Use S3 URL
@@ -273,7 +275,7 @@ public function addCapturedImage(Request $request)
                     ];
                     // print_r($infoParam);die;
                     if (config('app.env') === 'local') {
-                        $regImgName = $imageDetails['name'];
+                        $regImgName = $imageDetails['url'];
                     } else {
                         // Delete the local file after upload
                         CommonHelper::localFileDelete($imageDetails['path']);
