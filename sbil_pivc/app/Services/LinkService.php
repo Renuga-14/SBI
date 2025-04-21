@@ -593,7 +593,19 @@ class LinkService
 
       return false;
   }
-
+  public function checkProposalNoExistDetailsPdf($proposal_no)
+  {
+    $result = Link::from('links as l')
+    ->select('l.*', 'p.product_name', 'p.uin_no')
+    ->join('products as p', 'p.id', '=', 'l.product_id')
+    ->whereRaw('(l.proposal_no) = ?', [$proposal_no])
+    // ->where('l.transcript_pdf_url', '!=', '')
+    // ->orderByDesc('l.id')
+    // ->orderByAsc('l.id')
+    ->first();
+// dd($result);
+    return $result ? $result->toArray() : false;
+  }
 
 }
 

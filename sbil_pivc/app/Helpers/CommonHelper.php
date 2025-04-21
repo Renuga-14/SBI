@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Carbon\Carbon;
 class CommonHelper
 {
     const ENCRYPT_METHOD = 'AES-256-CBC';
@@ -264,6 +265,30 @@ class CommonHelper
 
         return $result;
     }
+  
+    public static function check_had_value($val, $return = null) {
+        return (isset($val) && $val !== '') ? trim($val) : $return;
+    }
+
+    public static function check_boolean_value($val,$true=TRUE,$false=FALSE)
+    {
+        return ($val)? $true : $false;
+    }
     
+    public static function formatDisagreementInput($val,$return=NULL)
+    {
+        return (isset($val) && ($val!=''))? lcfirst(ltrim($val,'in_')) : $return;
+    }
+
+
+    public static function date_convert($date, $format = 'd-m-Y H:i:s')
+    {
+        if ($date) {
+            return Carbon::parse($date)->format($format);
+        }
+
+        return null;
+    }
+
 
 }

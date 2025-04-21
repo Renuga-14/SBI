@@ -1,4 +1,9 @@
+<?php
+use App\Helpers\CommonHelper; 
+?>
+
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
