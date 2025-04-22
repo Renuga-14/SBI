@@ -164,5 +164,10 @@ public function formatPDFCollectedData($linkDetails,  $regPhotoUrl = [],  $conse
     }
 
 
+    public function updatePDFUrl($link_id,$pdf_url)
+    {
+        return $this->commonRepository->updateRecord(config('constants.LINKS_TABLE'), ['id' => $link_id], ['transcript_pdf_url' => $pdf_url]);
+     
+    }
 
 }

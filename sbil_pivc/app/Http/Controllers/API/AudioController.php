@@ -89,7 +89,8 @@ class AudioController extends Controller
         
         // Check for Rinn Raksha flow
         if (in_array($flow_key, $rinn_raksha_keys)) {
-            $basePath = "/var/www/html/sbil_piwc_rinn_raksha/";
+            $basePath = "D:/xampp/htdocs/sbil_piwc_rinn_raksha/";
+            // $basePath = "/var/www/html/sbil_piwc_rinn_raksha/";
         
             // Medical Questionnaire Screen
             if (Str::contains($screen_key, 'medicalquestionnaire-disagree')) {
@@ -148,7 +149,6 @@ class AudioController extends Controller
             'eighty', 'ninety', 'hundred', 'thousand', 'lakh', 'crore', 'hundreds',
             'thousands', 'lakhs', 'million', 'crores', 'rupees', 'and', 'paisa'
         ];
-        
         // Dynamic values
     /*     $dynamicCommon = [
             $product_name, $payment_type, $payment_frequent,
@@ -273,15 +273,17 @@ class AudioController extends Controller
       // Handle audio play sequence
       $previous_index = null;
       $key_index = 0;
-      
-      foreach ($sound_array as $key => $audioStr) {
+    //   print_r($audio_array);die;
+      foreach ($sound_array as $key => $audioStr) { 
         if (isset($audio_array[$audioStr]) && file_exists($audio_array[$audioStr])) {
-          $audio_update = str_replace('/var/www/html', 'https://pivc.sbilife.co.in', $audio_array[$audioStr]);
-          $audio_update = str_replace('public_html', '', $audio_update);
+          $audio_update = str_replace('D:/xampp/htdocs', 'http://localhost', $audio_array[$audioStr]);
+        //   $audio_update = str_replace('public_html', '', $audio_update);print_r($audio_update);
+     /*      $audio_update = str_replace('/var/www/html', 'https://pivc.sbilife.co.in', $audio_array[$audioStr]);
+          $audio_update = str_replace('public_html', '', $audio_update); */ 
           $index_var = 'index' . $key_index;
       
           $audio_html .= "var $index_var = new Audio(\"$audio_update\");\n";
-      
+        
           if ($previous_index === null) {
             $audio_html .= "$index_var.play().catch(e => {
               alert('Playback failed. Click again or check permissions.');
@@ -290,7 +292,7 @@ class AudioController extends Controller
           } else {
             $audio_html .= "$previous_index.onended = function() { $index_var.play(); };\n";
           }
-      
+          
           $previous_index = $index_var;
           $key_index++;
         }

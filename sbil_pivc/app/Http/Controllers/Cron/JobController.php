@@ -42,11 +42,22 @@ class JobController extends Controller
     switch (strtoupper($case)) {
         case 'RR':
             $pivcCompleteList = $this->jobService->getCompleteRR();   
-           $this->pdfGenerate($pivcCompleteList);
+            if (!$pivcCompleteList->isEmpty()) {
+                $this->pdfGenerate($pivcCompleteList);
+            } else {
+                return response()->json(['error' => 'RinnRaksha Records are empty.'], 400);
+            }
+            break;
+          
            
         case 'PIVC':
             $pivcCompleteList = $this->jobService->getCompletePIVC(); 
-            $this->pdfGenerate($pivcCompleteList);
+            if (!$pivcCompleteList->isEmpty()) {
+                $this->pdfGenerate($pivcCompleteList);
+            } else {
+                return response()->json(['error' => 'PIVC Records are empty.'], 400);
+            }
+            break;
         default:
             return response()->json(['error' => 'Invalid case provided. Please use RR or PIVC only.'], 400);
     }
@@ -145,7 +156,7 @@ class JobController extends Controller
 
                     $source = $pNCValue['source']; 
                     $loanCategory = $link_params_arr['flow_data']['LOAN_CATEGORY'];
-                   $productName = ucwords(str_replace('_',' ', $slugName));
+                    $productName = ucwords(str_replace('_',' ', $slugName));
                     $rin = Products::$rin;  
                  
                     if (in_array($flowKey,$rin)) { 
@@ -187,7 +198,7 @@ class JobController extends Controller
                     $transcript_pdf_html = view('template.pdf.transcriptrinnraksha', $this->data)->render();
                 } else {
                     $transcript_pdf_html = view('template.pdf.transcriptNewDesign', $this->data)->render();
-                }print_r($transcript_pdf_html);die;
+                }//print_r($transcript_pdf_html);die;
                 $flowKey = (!empty($link_params_arr['flow_key']))? $link_params_arr['flow_key']:'';
                 $dataDir = public_path();
                 $fileDirRel = 'df_adc_transcript_file_path/' . $flowKey . '/';
@@ -270,13 +281,14 @@ if (file_exists($sourcePath)) {
 
     // Optionally, get the public URL to access it
     $publicUrl = Storage::url($folder . '/' . $filename);
+    // $publicUrl = Storage::url($folder . '/' . $filename);
 } else {
     // Handle missing file
     $publicUrl = null;
 }
-print_r($publicUrl);die;
-            
-                
+
+$this->jobService->updatePDFUrl($pNCValue['id'],$sourcePath);          
+print_r($sourcePath);die;
             }
         }
     }

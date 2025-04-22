@@ -10,6 +10,8 @@ return [
     'DEFAULT_ROLE' => 'user',     // Default user role
     'API_TIMEOUT' => 30,
     'CLIENT_URL_RINN_DESIGN' => 'http://localhost/sbil_piwc_rinn_raksha/index.html',
+    'CLIENT_URL_NEW_DESIGN' =>'http://localhost/sbil_piwc/index.html',
+    'CLIENT_URL' =>'http://localhost/adc/index.html',
 
 
 

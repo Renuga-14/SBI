@@ -566,15 +566,16 @@ class LinkService
               "VD_Verif"              => $pivcData['VD_Verif'] ?? null,
           ]
       ];
+      $params_json = json_encode($params);
 
       $response = Http::withHeaders([
-              'x-ibm-client-id'     => env('SBIL_STATUS_APIP_CLIENT'),
-              'x-ibm-client-secret' => env('SBIL_STATUS_APIP_SECRET'),
+              'x-ibm-client-id'     =>config('services.sbil_status.client_id'),
+              'x-ibm-client-secret' => config('services.sbil_status.client_secret'),
               'Content-Type'        => 'application/json',
           ])
           ->withoutVerifying() // disables SSL verification, same as `$tt->ssl(FALSE)`
-          ->post(env('SBIL_STATUS_PURL'), $params);
-
+          ->post(config('services.sbil_status.url'), $params_json);
+          print_r($response);die;
       $resArr = $response->json();
 
       $logTag = 'pivcStatusUpdate';

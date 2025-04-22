@@ -8,6 +8,8 @@ use App\Http\Controllers\API\AudioController;
 
 Route::post('/createRinnRakshaLink', [PivcController::class, 'createRinnRakshaLink']);
 Route::post('/getRinnRakshaLink', [PivcController::class, 'getRinnRakshaLink']);
+Route::post('/getProposalPIVCLink', [PivcController::class, 'getProposalPIVCLink']);
+Route::post('/validatePIVCLink', [PivcController::class, 'validatePIVCLink']);
 Route::post('/validateRinnRikshaLink', [PivcController::class, 'validateRinnRikshaLink']);
 Route::post('/getGeoLocationAddress', [PivcController::class, 'getGeoLocationAddress']);
 Route::post('/deviceDetails', [PivcController::class, 'deviceDetails']);
