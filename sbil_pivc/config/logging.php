@@ -52,6 +52,34 @@ return [
 
     'channels' => [
 
+        'rinn_raksha_link_LOG' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/rinn_raksha_link-' . date('Y-m-d') . '.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'Journey_LOG' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Journey-' . date('Y-m-d') . '.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+        'Journey_IMG_LOG' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/Journey_img-' . date('Y-m-d') . '.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+        'getProposalPIVCLink_LOG' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/getProposalPIVCLink-' . date('Y-m-d') . '.log'),
+            'level' => 'debug',
+            'days' => 30,
+        ],
+
+
         'stack' => [
             'driver' => 'stack',
             'channels' => explode(',', env('LOG_STACK', 'single')),
