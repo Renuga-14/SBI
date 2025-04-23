@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use App\Http\Controllers\Controller;
-use App\Services\LinkService;
-use App\Services\JobService;
 use Illuminate\Support\Str;
+use App\Services\JobService;
+use Illuminate\Http\Request;
+use App\Services\LinkService;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
 
 
 class AudioController extends Controller
@@ -22,7 +22,7 @@ class AudioController extends Controller
     public function playAudioFromPDF($encryptedProposalNo, $screen)
     {
                 // $proposalNo = Crypt::decryptString($encryptedProposalNo);
-        $proposalNo = $encryptedProposalNo; //print_r($proposalNo);die;
+        $proposalNo = $encryptedProposalNo;
         $basePath =  "/var/www/html/sbil_piwc/";
         $links = $this->linkService->checkProposalNoExistDetailspdf($proposalNo);
         if (!$links) {
@@ -74,6 +74,7 @@ class AudioController extends Controller
 
                     if ($loan_category == "Personal Loan") {
                         $sound_array = ['welcome_one', 'personal_loan', 'welcome_two'];
+
                     } elseif ($loan_category == "Home Loan") {
                         $sound_array = ['welcome_one', 'home_loan', 'welcome_two'];
                     } else {
@@ -89,7 +90,7 @@ class AudioController extends Controller
 
         // Check for Rinn Raksha flow
         if (in_array($flow_key, $rinn_raksha_keys)) {
-            $basePath = "D:/xampp/htdocs/sbil_piwc_rinn_raksha/";
+            $basePath = "c:/xampp/htdocs/sbil_piwc_rinn_raksha/";
             // $basePath = "/var/www/html/sbil_piwc_rinn_raksha/";
 
             // Medical Questionnaire Screen
@@ -276,7 +277,7 @@ class AudioController extends Controller
     //   print_r($audio_array);die;
       foreach ($sound_array as $key => $audioStr) {
         if (isset($audio_array[$audioStr]) && file_exists($audio_array[$audioStr])) {
-          $audio_update = str_replace('D:/xampp/htdocs', 'http://localhost', $audio_array[$audioStr]);
+          $audio_update = str_replace('c:/xampp/htdocs', 'http://localhost', $audio_array[$audioStr]);
         //   $audio_update = str_replace('public_html', '', $audio_update);print_r($audio_update);
      /*      $audio_update = str_replace('/var/www/html', 'https://pivc.sbilife.co.in', $audio_array[$audioStr]);
           $audio_update = str_replace('public_html', '', $audio_update); */

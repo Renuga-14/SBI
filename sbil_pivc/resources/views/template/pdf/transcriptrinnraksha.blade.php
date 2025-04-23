@@ -97,6 +97,10 @@ use App\Helpers\CommonHelper;
             font-weight: bold;
         }
 
+        .title{
+            text-align: center;
+        }
+
         .rtl {
             direction: rtl;
         }
