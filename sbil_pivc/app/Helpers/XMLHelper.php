@@ -8,9 +8,12 @@ class XMLHelper
 {
     public static function parseRinnRikshaPIVCXml($xml_data)
     {
-        $xml_arr = self::xmlToArray($xml_data);
-        return ($xml_arr === false) ? false : self::formatArrayRinnRiksha($xml_arr);
+        $xml_arr = XMLHelper::xmlToArray($xml_data);
+        return ($xml_arr === false) ? false : XMLHelper::formatArrayRinnRiksha($xml_arr);
     }
+
+
+
 
     public static function xmlToArray($xml_data)
     {
@@ -61,35 +64,45 @@ class XMLHelper
         return !empty($val) ? $val : null;
     }
 
-    public function parsePIVCXml(string $xmlData): array|bool
+    public static function parsePIVCXml(string $xmlData): array|bool
     {
-        $xmlArr = $this->xmlToArray($xmlData);
+        $xmlArr = XMLHelper::xmlToArray($xmlData); // Use self::
 
         if ($xmlArr === false) {
             return false;
         }
 
+        // If 'Table' key exists
         if (isset($xmlArr['Table'])) {
-            $tableCount = count($xmlArr['Table']);
-
+            $table = $xmlArr['Table'];
+            $tableCount = is_array($table) ? count($table) : 0;
+          //  print_r(  $table );die;
+            // More than 2 tables — format as one
             if ($tableCount > 2) {
-                return $this->formatArray($xmlArr);
+
+                return XMLHelper::formatArray($xmlArr); // Use self::
+
             }
 
-            if ($tableCount < 3) {
+            // 1 or 2 tables — format each individually
+            if ($tableCount > 0) {
                 $products = [];
-                foreach ($xmlArr['Table'] as $index => $value) {
-                    $sendArr = ['Table' => $value];
-                    $products[] = $this->formatArray($sendArr);
+                //print_r(  $products );die;
+                foreach ($table as $row) {
+                    $products[] = XMLHelper::formatArray(['Table' => $row]); // Use self::
                 }
+
                 return $products;
             }
         }
 
-        return $this->formatArray($xmlArr);
+        // Default formatting if no 'Table' or fallback
+        return XMLHelper::formatArray($xmlArr); // Use self::
     }
 
-    public function formatArray(array $xmlArr): array|bool
+
+
+    public static function formatArray(array $xmlArr): array|bool
 {
     $mainArr = $xmlArr['Table'] ?? [];
 
@@ -97,7 +110,7 @@ class XMLHelper
         $resArr = [];
 
         foreach ($mainArr as $key => $value) {
-            $tempValue = $this->filterXMLArrayValue($value);
+            $tempValue = self::filterXMLArrayValue($value);
 
             if ($key === 'DOB_PH') {
 

@@ -32,7 +32,7 @@ class DataController extends Controller
             'sbil_key' => 'required|string',
             'sbil_consent_img'      => 'required',
         ];
-      
+
         // Custom error messages
         $messages = [
             'sbil_key.required' => 'SBI KEY is required.',
@@ -51,12 +51,12 @@ class DataController extends Controller
             ], 400);
         }
 
-       
+
         $linkKey = trim($request->input('sbil_key'));
         $linkImg = str_replace(['data:image/jpeg;base64,', ' '], ['', '+'], $request->input('sbil_consent_img'));
         $linkImgData = base64_decode($linkImg);
         $linkMediaAppend = ($request->input('sbil_media_append')=='true')? TRUE : FALSE;
-       
+
         $metaDetails = [
             'lat' => $request->input('sbil_lat', 0),
             'long' => $request->input('sbil_long', 0),
@@ -64,16 +64,16 @@ class DataController extends Controller
             'lang' => $request->input('sbil_lang', ''),
             'scrn' => $request->input('sbil_scrn', '')
         ];
-        
+
 
         if (!empty($linkKey) && $linkImgData !== false) {
-        
+
             $linkDetail = $this->KfdService->checkLinkKeyExist($linkKey);
           if($linkDetail!==false)
             {
                 $link_id = $linkDetail['id'];
                 $fileNameDetails = app(DataService::class)->consentImageFile($link_id,$metaDetails['scrn']);
-              
+
                 if (!$fileNameDetails['status']) {
                     return response()->json([
                         'status' => false,
@@ -85,7 +85,7 @@ class DataController extends Controller
                         'product_name'=>$fileNameDetails['p_name'],
                         'file_loc'=>config('constants.DF_ADC_CONSENT_IMG_PATH')
                     );
-        
+
                     $imageDetails = app(DataService::class)->addConsentJPEGImageFile($file_name_data,$linkImgData,$metaDetails); //print_r($imageDetails);die;
                     if ($imageDetails['status']) {
                         $infoParam = [
@@ -95,7 +95,7 @@ class DataController extends Controller
                             'screen'    => $metaDetails['scrn'],
                             'language'  => $metaDetails['lang']
                         ];
-                    
+
                         if (config('app.env') === 'local') {
                             $regImgName = $imageDetails['url'];
                             // $regImgName = $imageDetails['name'];
@@ -105,13 +105,13 @@ class DataController extends Controller
                             $regImgName = $imageDetails['url'];
                         }
                         $linkMediaUrlUpdate = app(DataService::class)->updateConsentPhotoUrl($link_id,$regImgName,$linkMediaAppend,$infoParam);
-                                              
+
                         return response()->json(['status' => true, 'msg' => 'Successfully added the captured user image!']);
                     } else {
                         return response()->json(['status' => false, 'msg' => 'Error occurred while creating the image!']);
                     }
 
-                }   
+                }
             } else  {
                 return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
             }
@@ -151,19 +151,19 @@ class DataController extends Controller
         if (!$linkImgData) {
             return response()->json(['status' => false, 'msg' => 'Invalid image data!']);
         }
-        
-        if (!empty($linkKey) && $linkImgData !== false) { 
+
+        if (!empty($linkKey) && $linkImgData !== false) {
             $linkDetail = $this->KfdService->checkLinkKeyExist($linkKey);
             if($linkDetail!==false)
-              { 
+              {
                 $link_id = $linkDetail['id'];
-                $fileNameDetails = app(DataService::class)->captureImageScreenShotFile($link_id,$metaDetails['scrn']); 
+                $fileNameDetails = app(DataService::class)->captureImageScreenShotFile($link_id,$metaDetails['scrn']);
                 if (!$fileNameDetails['status']) {
                     return response()->json([
                         'status' => false,
                         'msg' => 'Given file data is invalid!'
                     ], 400); // 400 Bad Request
-                } else { 
+                } else {
                     $file_name_data = array(
                         'file_name'=>$fileNameDetails['name'],
                         'product_name'=>$fileNameDetails['p_name'],
@@ -178,7 +178,7 @@ class DataController extends Controller
                             'screen'    => $metaDetails['scrn'],
                             'language'  => $metaDetails['lang']
                         ];
-                    
+
                         if (config('app.env') === 'local') {
                             $regImgName = $imageDetails['url'];
                             // $regImgName = $imageDetails['name'];
@@ -186,10 +186,10 @@ class DataController extends Controller
                             CommonHelper::localFileDelete($imageDetails['path']);
                             $regImgName = $imageDetails['url']; // Use S3 URL
                         }
-                        
+
                         // Update screenshot URL in database
                         $linkMediaUrlUpdate = app(DataService::class)->updateScreenShotPhotoUrl($link_id,$regImgName,$linkMediaAppend,$infoParam);
-                    
+
                         return response()->json([
                             'status' => true,
                             'msg'    => 'Successfully added the captured user image!'
@@ -200,7 +200,7 @@ class DataController extends Controller
                             'msg'    => 'Error occurred while creating the image!'
                         ]);
                     }
-                    
+
 
                 }
 
@@ -211,7 +211,7 @@ class DataController extends Controller
         {
             return response()-> json(array('status'=>FALSE,'msg'=>'Given Link or data is not valid!'));
         }
- 
+
     }
 
 public function addCapturedImage(Request $request)
@@ -219,7 +219,7 @@ public function addCapturedImage(Request $request)
     $validator = Validator::make($request->all(), [
         'sbil_key' => 'required',
         'sbil_reg_img' => 'required',
-      
+
     ]);
     if ($validator->fails()) {
         return response()->json(['status' => false, 'msg' => 'Please supply all the required values. Please try later!']);
@@ -242,16 +242,16 @@ public function addCapturedImage(Request $request)
         'lang' => $request->input('sbil_lang', ''),
         'scrn' => $request->input('sbil_scrn', ''),
     ];
-   
+
 // print_r($metaDetails);die;
-    if (!empty($linkKey) && $linkImgData !== false) { 
+    if (!empty($linkKey) && $linkImgData !== false) {
         $linkDetail = $this->KfdService->checkLinkKeyExist($linkKey);
         if (!$linkDetail) {
             return response()->json(['status' => false, 'msg' => 'Given Link is not valid!']);
         } else {
             $link_id = $linkDetail['id'];
             $fileNameDetails = app(DataService::class)->captureImageFile($link_id,$metaDetails['scrn']);
-     
+
             if (!$fileNameDetails['status']) {
                 return response()->json([
                     'status' => false,
@@ -263,7 +263,7 @@ public function addCapturedImage(Request $request)
                     'product_name'=>$fileNameDetails['p_name'],
                     'file_loc'=>config('constants.DF_ADC_CAPTURE_IMG_PATH')
                 );
-    
+
                 $imageDetails = app(DataService::class)->addCapturedJPEGImageFile($file_name_data,$linkImgData,$metaDetails);
                 if ($imageDetails['status']) {
                     $infoParam = [
@@ -281,16 +281,16 @@ public function addCapturedImage(Request $request)
                         CommonHelper::localFileDelete($imageDetails['path']);
                         $regImgName = $imageDetails['url'];
                     }
-                   
+
                     $linkMediaUrlUpdate = app(DataService::class)->updateRegPhotoUrl($link_id,$regImgName,$linkMediaAppend,$infoParam);
-                                          
+
                     return response()->json(['status' => true, 'msg' => 'Successfully added the captured user image!']);
                 } else {
                     return response()->json(['status' => false, 'msg' => 'Error occurred while creating the image!']);
                 }
 
-            } 
-            
+            }
+
 
         }
     }
@@ -311,7 +311,7 @@ public function getAllImages(Request $request)
     $validatedData = $validator->validated();
     $linkKey = trim($validatedData['sbil_key']);
     $linkDetails = $this->KfdService->checkLinkKeyExist($linkKey);
-   
+
     if (!$linkDetails) {
         return response()->json([
             'status' => false,

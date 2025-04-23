@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use App\Http\Controllers\Controller; 
-use App\Services\LinkService;
-use App\Services\JobService;
 use Illuminate\Support\Str;
+use App\Services\JobService;
+use Illuminate\Http\Request;
+use App\Services\LinkService;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Crypt;
 
 
 class AudioController extends Controller
@@ -22,7 +22,7 @@ class AudioController extends Controller
     public function playAudioFromPDF($encryptedProposalNo, $screen)
     {
                 // $proposalNo = Crypt::decryptString($encryptedProposalNo);
-        $proposalNo = $encryptedProposalNo; //print_r($proposalNo);die;
+        $proposalNo = $encryptedProposalNo;
         $basePath =  "/var/www/html/sbil_piwc/";
         $links = $this->linkService->checkProposalNoExistDetailspdf($proposalNo);
         if (!$links) {
@@ -30,10 +30,10 @@ class AudioController extends Controller
         }
         $completedYear = date('Y', strtotime($links['completed_on']));
         $completedYearMinusOne = $completedYear - 1;
-        $data_list = $this->jobService->formatPDFCollectedData($links,json_decode($links['reg_photo_url'],TRUE),json_decode($links['consent_image_url'],TRUE),json_decode($links['response'],TRUE));  
+        $data_list = $this->jobService->formatPDFCollectedData($links,json_decode($links['reg_photo_url'],TRUE),json_decode($links['consent_image_url'],TRUE),json_decode($links['response'],TRUE));
 
         $lang = $data_list['Welcome Screen']['image']['language'] ?? 'eng';
-        
+
 
         $parameters = json_decode($links['params']);
         $flow_key = $parameters->flow_key ?? null;
@@ -74,6 +74,7 @@ class AudioController extends Controller
 
                     if ($loan_category == "Personal Loan") {
                         $sound_array = ['welcome_one', 'personal_loan', 'welcome_two'];
+
                     } elseif ($loan_category == "Home Loan") {
                         $sound_array = ['welcome_one', 'home_loan', 'welcome_two'];
                     } else {
@@ -86,26 +87,26 @@ class AudioController extends Controller
         }
         $screen_key = strtolower(str_replace(' ', '', $screen));
         $rinn_raksha_keys = ['sbilm_rinn_raksha', 'sbilpn_rinn_raksha', 'sbilmp_rinn_raksha'];
-        
+
         // Check for Rinn Raksha flow
         if (in_array($flow_key, $rinn_raksha_keys)) {
-            $basePath = "D:/xampp/htdocs/sbil_piwc_rinn_raksha/";
+            $basePath = "c:/xampp/htdocs/sbil_piwc_rinn_raksha/";
             // $basePath = "/var/www/html/sbil_piwc_rinn_raksha/";
-        
+
             // Medical Questionnaire Screen
             if (Str::contains($screen_key, 'medicalquestionnaire-disagree')) {
                 $sound_array[] = '4_2';
             } elseif (Str::contains($screen_key, 'medicalquestionnaire')) {
                 $sound_array[] = '5_1';
             }
-        
+
             // Personal Details Screen
             if (Str::contains($screen_key, 'personaldetails-disagree')) {
                 $sound_array[] = '4_2';
             } elseif (Str::contains($screen_key, 'personaldetails')) {
                 $sound_array[] = '3_1';
             }
-        
+
         } else {
             // Non-Rinn Raksha flow for Personal Details
             if (Str::contains($screen_key, 'personaldetails-disagree')) {
@@ -114,23 +115,23 @@ class AudioController extends Controller
                 $sound_array[] = '3_1';
             }
         }
-       
-       
+
+
         $retire_smart_keys = [
             "sbilm_retire_smart", "sbilsa_retire_smart", "sbilo_retire_smart",
             "sbilm_retire_smart_plus", "sbilsa_retire_smart_plus", "sbilo_retire_smart_plus",
             "sbily_retire_smart_plus", "sbilpl_retire_smart", "sbilpl_retire_smart_plus"
         ];
-        
+
         if (!in_array($parameters->flow_key, $retire_smart_keys)) {
             define('PRODUCT_AUDIO_LANG_PATH_NO', $basePath . 'assets/product_assets/' . $parameters->flow_key . '/audio/' . $lang . '/scenes/');
         } else {
             define('PRODUCT_AUDIO_LANG_PATH_NO', $basePath . 'assets/audio/product/' . $lang . '/scenes/');
         }
-        
+
         define('COMMON_AUDIO_LANG_PATH_NO', $basePath . 'assets/audio/product/' . $lang . '/common/');
-        
-      
+
+
         $productAudio = [
             'welcome', 'welcome_one', 'welcome_two', 'home_loan', 'personal_loan',
             'welcome_online', 'welcome_plus', 'vid_online', 'policy_term_single',
@@ -138,7 +139,7 @@ class AudioController extends Controller
             '3_2', '4_2', '5_1', '6_1', '6_2', '6_3', '6_4', '6_5', '6_6', '6_7',
             'PB', '11_1', 'DB',
         ];
-        
+
         $commonAudio = [
             'premium_of', 'req_tax', 'applicable_tax', 'for', 'premium_till',
             'policy_term', 'payable_till', 'sum_assured', 'policy_payment_disclaimer',
@@ -161,7 +162,7 @@ class AudioController extends Controller
             $dynamicProduct[] = $guaranteed_frequency;
         }
         $audio_array = [];
-        
+
         // Add product audio files
         foreach ($sound_array as $sound) {
             if (in_array($sound, $productAudio)) {
@@ -172,9 +173,9 @@ class AudioController extends Controller
                 $audio_array[$sound] = 'Not found in audio arrays';
             }
         }//print_r( $audio_array);
-        // die; 
+        // die;
       /*   foreach ($productAudio as $key) {
-            // $audio_array[$key]= 
+            // $audio_array[$key]=
             $audio_array[$key] = PRODUCT_AUDIO_LANG_PATH_NO . $audio_array[$sound_array] . '.mp3';
         } */
        /*  print_r($audio_array[$key]);
@@ -187,12 +188,12 @@ class AudioController extends Controller
      /*    foreach ($commonAudio as $key) {
             $audio_array[$key] = COMMON_AUDIO_LANG_PATH_NO . $key . '.mp3';
         } */
-        
+
         // Add dynamic common audio files
       /*   foreach ($dynamicCommon as $key) {
             $audio_array[$key] = COMMON_AUDIO_LANG_PATH_NO . $key . '.mp3';
         } */
-        
+
         // Add dynamic product audio files
         if (in_array($sound_array, $dynamicProduct)) {
             $audio_array[$sound_array] = PRODUCT_AUDIO_LANG_PATH_NO . $sound_array . '.mp3';
@@ -204,30 +205,30 @@ class AudioController extends Controller
 
     /*    print_r( $audio_array);
         die; */
-      $prepare_audioArray   = array(); 
+      $prepare_audioArray   = array();
       $iset =0;
-      
+
       //header('Content-type: audio/mpeg');
-      //header("Content-Transfer-Encoding: binary");  
-      //header("Content-Type: audio/mpeg, audio/x-mpeg, audio/x-mpeg-3, audio/mpeg3"); 
- 
+      //header("Content-Transfer-Encoding: binary");
+      //header("Content-Type: audio/mpeg, audio/x-mpeg, audio/x-mpeg-3, audio/mpeg3");
+
       $audio_html = '<!DOCTYPE html>
       <html>
-      <body style="width: 99%;text-align: center;"> 
+      <body style="width: 99%;text-align: center;">
       <style>
-      @media screen and (min-device-width: 800px) and (max-device-width: 1600px) { 
-        .topimg { width: 30% !important; } 
+      @media screen and (min-device-width: 800px) and (max-device-width: 1600px) {
+        .topimg { width: 30% !important; }
       }
       .img-playbtn {
-        position: absolute; 
+        position: absolute;
         top: 50%;
         left: 46%;
       }
       </style>';
-      
+
       // Convert screen name to lowercase and remove spaces
       $screen_clean = strtolower(str_replace(" ", "", $screen));
-      
+
       // Map screen keys to corresponding image keys
       $screen_map = [
         'welcomescreen' => 'Welcome Screen',
@@ -249,9 +250,9 @@ class AudioController extends Controller
         'importantpoints' => 'Terms Details',
         'termsdetails' => 'Terms Details',
       ];
-   
+
       // Loop through the map and match the screen
-      foreach ($screen_map as $key => $image_key) {   
+      foreach ($screen_map as $key => $image_key) {
         if (strpos($screen_clean, strtolower(str_replace(" ", "", $key))) !== false) {
           if (isset($data_list[$image_key]['image']['media_screen_url'])) {
             $image_url = $data_list[$image_key]['image']['media_screen_url'];
@@ -260,30 +261,30 @@ class AudioController extends Controller
           break;
         }
       }//print_r($data_list[$image_key]);die;
-      
+
       // Add play button
       $audio_html .= '<div class="img-playbtn" id="img-playbtn">
-        <img src="https://pivc.sbilife.co.in/sbil_piwc/assets/images/common/playbtn.png" style="width: 78px;" onclick="play()" /> 
+        <img src="https://pivc.sbilife.co.in/sbil_piwc/assets/images/common/playbtn.png" style="width: 78px;" onclick="play()" />
       </div>
       <script>
       function play() {
         document.getElementById("img-playbtn").style.display = "none";
       ';
-      
+
       // Handle audio play sequence
       $previous_index = null;
       $key_index = 0;
     //   print_r($audio_array);die;
-      foreach ($sound_array as $key => $audioStr) { 
+      foreach ($sound_array as $key => $audioStr) {
         if (isset($audio_array[$audioStr]) && file_exists($audio_array[$audioStr])) {
-          $audio_update = str_replace('D:/xampp/htdocs', 'http://localhost', $audio_array[$audioStr]);
+          $audio_update = str_replace('c:/xampp/htdocs', 'http://localhost', $audio_array[$audioStr]);
         //   $audio_update = str_replace('public_html', '', $audio_update);print_r($audio_update);
      /*      $audio_update = str_replace('/var/www/html', 'https://pivc.sbilife.co.in', $audio_array[$audioStr]);
-          $audio_update = str_replace('public_html', '', $audio_update); */ 
+          $audio_update = str_replace('public_html', '', $audio_update); */
           $index_var = 'index' . $key_index;
-      
+
           $audio_html .= "var $index_var = new Audio(\"$audio_update\");\n";
-        
+
           if ($previous_index === null) {
             $audio_html .= "$index_var.play().catch(e => {
               alert('Playback failed. Click again or check permissions.');
@@ -292,20 +293,20 @@ class AudioController extends Controller
           } else {
             $audio_html .= "$previous_index.onended = function() { $index_var.play(); };\n";
           }
-          
+
           $previous_index = $index_var;
           $key_index++;
         }
       }
-      
+
       $audio_html .= '}
       </script>
       </body>
       </html>';
-     
+
       echo $audio_html;
       die;
-      
+
         // print_r($audio_array);
     }
 }
