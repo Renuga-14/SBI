@@ -3,13 +3,14 @@
 namespace App\Http\Controllers\Cron;
 
 use Mpdf\Mpdf;
-
 use App\Constants\Products;
 use App\Services\JobService;
 use Illuminate\Http\Request;
 use Mpdf\Output\Destination;
 use App\Helpers\CommonHelper;
 use App\Services\LinkService;
+use Mpdf\Config\FontVariables;
+use Mpdf\Config\ConfigVariables;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Cron\PDFTextController;
@@ -226,7 +227,11 @@ class JobController extends Controller
                 $fileUrl = asset($fileDirRel . $fileName);
                 $fileKey = $fileDirRel . $fileName;
 
+                $defaultConfig = (new ConfigVariables())->getDefaults();
+                $fontDirs = $defaultConfig['fontDir'];
 
+                $defaultFontConfig = (new FontVariables())->getDefaults();
+                $fontData = $defaultFontConfig['fontdata'];
                 $mpdf = new Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
@@ -236,7 +241,17 @@ class JobController extends Controller
                     'margin_top' => 0,
                     'margin_bottom' => 10,
                     'defaultfooterline' => 0,
-                    'tempDir' => base_path('tmp')  // Laravel-friendly path
+                    'tempDir' => base_path('tmp'),  // Laravel-friendly path
+                    'fontDir' => array_merge($fontDirs, [
+                            resource_path('fonts'),
+                        ]),
+                        'fontdata' => $fontData + [
+                            'kan' => ['R' => 'NotoSerifKannada-VariableFont_wght.ttf'],
+                            'tel' => ['R' => 'NotoSansTelugu-VariableFont_wdth,wght.ttf'],
+                            'guj' => ['R' => 'NotoSerifGujarati-VariableFont_wght.ttf'],
+                            'ben' => ['R' => 'NotoSansBengali-VariableFont_wdth,wght.ttf'],
+
+                        ]
                 ]);
 
                 $mpdf->SetHTMLFooter(
