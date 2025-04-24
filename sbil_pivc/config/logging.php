@@ -59,6 +59,7 @@ return [
             'days' => 30,
         ],
 
+
         'Journey_LOG' => [
             'driver' => 'daily',
             'path' => storage_path('logs/Journey-' . date('Y-m-d') . '.log'),
