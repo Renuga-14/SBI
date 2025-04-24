@@ -8,27 +8,28 @@ use App\Helpers\CommonHelper;
 <head>
     <meta charset="utf-8">
     <title>SBI LIFE - PIVC Report</title>
+
+
     <style>
         .hin,
         .mar,
-        .guj,
-        .ben,
         .pun,
         .tam,
         .mal,
         .ass,
-        .maw,
         .ori {
             font-family: freeserif;
         }
 
-        .tel {
-            font-family: Noto Sans, sans-serif;
-        }
+        .kan { font-family: 'kan'; }
+        .tel { font-family: 'tel'; }
+        .maw { font-family: 'maw'; }
+        .ben { font-family: 'ben'; }
+        .guj { font-family: 'guj'; }
 
-        .kan {
-            font-family: baloo;
-        }
+
+
+
 
         .english-font {
             font-family: 'Arial', sans-serif;
@@ -175,7 +176,10 @@ use App\Helpers\CommonHelper;
             page-break-after: always;
         }
     </style>
+
 </head>
+
+
 
 <body>
 
@@ -242,6 +246,11 @@ use App\Helpers\CommonHelper;
             $screenKey = strtolower(str_replace(" ", "", $screen));
             $langClass = $data['image']['language'] ?? '';
             $audioTextValue = $audio_text[$screenKey] ?? '';
+
+
+           // $audioTextValue = mb_convert_encoding($audioTextValue, 'UTF-8', 'auto');
+
+
             $agree = $data['response']['agree_status']?? null;
             $isMedical = in_array($screen, ['Medical Confirmation Screen One', 'Medical Confirmation Screen Two']);
             $agreeText = $agree ? 'Yes' : 'No';
@@ -272,7 +281,9 @@ use App\Helpers\CommonHelper;
                                             @endif
 
                                             @if(!empty($audioTextValue))
+
                                             <span class="t1 {{ $langClass }}">{!! $audioTextValue !!}</span>
+
                                             @endif
                                         </td>
                                     </tr>
