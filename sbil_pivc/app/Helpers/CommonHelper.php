@@ -2,11 +2,11 @@
 
 namespace App\Helpers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 class CommonHelper
 {
     const ENCRYPT_METHOD = 'AES-256-CBC';
@@ -265,8 +265,9 @@ class CommonHelper
 
         return $result;
     }
-  
+
     public static function check_had_value($val, $return = null) {
+       // print_r($val);die;
         return (isset($val) && $val !== '') ? trim($val) : $return;
     }
 
@@ -274,7 +275,7 @@ class CommonHelper
     {
         return ($val)? $true : $false;
     }
-    
+
     public static function formatDisagreementInput($val,$return=NULL)
     {
         return (isset($val) && ($val!=''))? lcfirst(ltrim($val,'in_')) : $return;

@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Cron;
 
-use Illuminate\Support\Facades\Storage;
-
-use App\Http\Controllers\Controller;
+use Mpdf\Mpdf;
+use App\Constants\Products;
 use App\Services\JobService;
 use Illuminate\Http\Request;
+use Mpdf\Output\Destination;
 use App\Helpers\CommonHelper;
 use App\Services\LinkService;
-use App\Constants\Products;
-use Mpdf\Mpdf;
-use Mpdf\Output\Destination;
+use Mpdf\Config\FontVariables;
+use Mpdf\Config\ConfigVariables;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Cron\PDFTextController;
 
 require_once base_path('vendor/autoload.php');
@@ -28,7 +29,7 @@ class JobController extends Controller
         $this->data=array();
         $this->data['title']="Job API";
     }
-    // generate pdf 
+    // generate pdf
     public function generateTranscriptPDF($case="RR")
     {
     //   $this->PendingCompletedPIVCflagPush(); // PendingFlagPush
@@ -41,17 +42,17 @@ class JobController extends Controller
     );
     switch (strtoupper($case)) {
         case 'RR':
-            $pivcCompleteList = $this->jobService->getCompleteRR();   
+            $pivcCompleteList = $this->jobService->getCompleteRR();
             if (!$pivcCompleteList->isEmpty()) {
                 $this->pdfGenerate($pivcCompleteList);
             } else {
                 return response()->json(['error' => 'RinnRaksha Records are empty.'], 400);
             }
             break;
-          
-           
+
+
         case 'PIVC':
-            $pivcCompleteList = $this->jobService->getCompletePIVC(); 
+            $pivcCompleteList = $this->jobService->getCompletePIVC();
             if (!$pivcCompleteList->isEmpty()) {
                 $this->pdfGenerate($pivcCompleteList);
             } else {
@@ -64,22 +65,22 @@ class JobController extends Controller
 
     }
 
-    // PendingFlagPush 
+    // PendingFlagPush
     public function PendingCompletedPIVCflagPush () {
-        $completeNullLinks = $this->jobService->getCompleteDateNull(); 
-     
+        $completeNullLinks = $this->jobService->getCompleteDateNull();
+
         if ($completeNullLinks->isNotEmpty()) {
             foreach ($completeNullLinks as $link) {
                 $linkId = $link->id;
                 $updated = $link->updated_on;
-                
+
                 $updateArr = [
                     'completed_on' => $updated,
                 ];
-            //    $this->jobService->setCompleteDateNull($linkId, $updateArr); 
-               $resArr = json_decode($link['response'],true); 
-               $paramsdata = json_decode($link['params'], true); 
-               if (isset($paramsdata['flow_key']) && strpos(strtolower((string) $paramsdata['flow_key']), '_rinn_raksha') !== false ) { 
+            //    $this->jobService->setCompleteDateNull($linkId, $updateArr);
+               $resArr = json_decode($link['response'],true);
+               $paramsdata = json_decode($link['params'], true);
+               if (isset($paramsdata['flow_key']) && strpos(strtolower((string) $paramsdata['flow_key']), '_rinn_raksha') !== false ) {
                 $statusremark =  CommonHelper::pivcRinnRakshaRemarks(1, $link['disagree_status'], $resArr, now()->format('m/d/Y H:i'));
                 $statusData = array(
                     'FORM_NUM' => $paramsdata['flow_data']['FORMNUMBER'],
@@ -100,7 +101,7 @@ class JobController extends Controller
                     'CALLING_REMARKS' =>   $statusremark['remarks'],
                     "SOURCE" => "Anoor",
                 );
-              
+
                 $this->linkService->updateGroupPIWCDetailsInsta($statusData);
             } else {
                 $allowedStatusType = array(2 => 'MCNCT',3 => 'ONLINE',5 => 'SMTADV',6 => 'PHYSICAL');
@@ -129,32 +130,34 @@ class JobController extends Controller
 
     public function pdfGenerate($pivcCompleteList){
         if(!empty($pivcCompleteList))
-        { 
+        {
+
             foreach ($pivcCompleteList as $pNCKey=>$pNCValue)
             {
-               
+
                 $link_params_arr = CommonHelper::check_had_value($pNCValue['params'])? json_decode($pNCValue['params'],TRUE):NULL;
-                $this->data['link_details'] = $pNCValue; 
+                $this->data['link_details'] = $pNCValue;
                 $this->data['link_params'] = $link_params_arr;
-                $this->data['device'] = json_decode($pNCValue['device'],true); 
+                $this->data['device'] = json_decode($pNCValue['device'],true);
+
                 $reg_photo_url = CommonHelper::check_had_value($pNCValue['reg_photo_url'])  ? json_decode($pNCValue['reg_photo_url'],TRUE):NULL;
                 $consent_image_url = CommonHelper::check_had_value($pNCValue['consent_image_url'])? json_decode($pNCValue['consent_image_url'],TRUE):NULL;
                 $response = CommonHelper::check_had_value($pNCValue['response'])? json_decode($pNCValue['response'],TRUE):NULL;
                 ksort($response);//print_r($response);die;
-                $data_list = $this->jobService->formatPDFCollectedData($pNCValue,$reg_photo_url,$consent_image_url,$response);   
-               
-                $this->data['data_list'] = $data_list; 
+                $data_list = $this->jobService->formatPDFCollectedData($pNCValue,$reg_photo_url,$consent_image_url,$response);
+
+                $this->data['data_list'] = $data_list;
                 $completed_year = (date('Y', strtotime($pNCValue['completed_on'])));
-             
+
                 $flowKey = $this->data['link_params']['flow_key'] ?? '';
 
                 foreach ($data_list as $kee => $dataListValue) {
                     $language = $dataListValue['image']['language'] ?? null;
-                    $slugName = $this->getSlugName($flowKey);//print_r($slugName);die;
-                    $sbi_url = "https://sbi-prod-data.s3.ap-south-1.amazonaws.com/adc/product_repo/";   
+                    $slugName = $this->getSlugName($flowKey);
+                    $sbi_url = "https://sbi-prod-data.s3.ap-south-1.amazonaws.com/adc/product_repo/";
                     $screen = isset($dataListValue['image']['screen']) ? strtolower(str_replace(" ", "", $dataListValue['image']['screen'])) : '';
 
-                    $source = $pNCValue['source']; 
+                    $source = $pNCValue['source'];
                     $loanCategory = $link_params_arr['flow_data']['LOAN_CATEGORY'];
                     $productName = ucwords(str_replace('_',' ', $slugName));
                     $rin = Products::getProducts('rin');  
@@ -167,19 +170,19 @@ class JobController extends Controller
                     } else {
                      
                         $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('pivc',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue);
-                    } 
-                   
-                 
+                    }
+
+
                 }  //die;
-                
+
                 $curDateTime = date('Y-m-d H:i:s');
                 // $this->data['face_score'] = $face_score;
                 // $this->data['face_response'] = $face_response;
                 $this->data['response'] = $response;
                 $this->data['curDateTime'] = $curDateTime;
                 $this->data['facial'] = 0;//(!empty($face_reg))?$face_reg[0]:0;
-                // $this->data['plan'] = $this->job_model->AnnuityPlan(trim($link_params_arr['flow_data']['PLAN'])); 
-                $this->data['facial'] = 0;//(!empty($face_reg))?$face_reg[0]:0;  
+                // $this->data['plan'] = $this->job_model->AnnuityPlan(trim($link_params_arr['flow_data']['PLAN']));
+                $this->data['facial'] = 0;//(!empty($face_reg))?$face_reg[0]:0;
                 $arrV = array("CUSTOMER_NAME" => "in_name",
                     "MA_DOB_PH" => "in_dob",
                     "MA_GENDER" => "in_gender",
@@ -210,10 +213,10 @@ class JobController extends Controller
                 $file_dir = $data_dir.$file_dir_rel;
 
                 $dir_status = $this->common_model->makeDirs($file_dir); */
-              
+
                 $dirStatus = CommonHelper::makeDirs($fileDir);
 				$completedDateTime = CommonHelper::check_had_value($pNCValue['completed_on'])? date('Y-m-d H:i:s',strtotime($pNCValue['completed_on'])):date('Y-m-d H:i:s',strtotime($curDateTime));
-                            
+
                 $fileName = '';
                 $fileName .= !empty($pNCValue['proposal_no']) ? $pNCValue['proposal_no'] . '_' : '';
                 $fileName .= 'PIVCTRST_';
@@ -221,12 +224,16 @@ class JobController extends Controller
                 $fileName .= date('Y_m_d_H_i_s', strtotime($completedDateTime));
                 $fileName .=CommonHelper::fileNameStd($fileName);
                 $fileName .= '.pdf';
-                            
+
                 $filePath = $fileDir . $fileName;
                 $fileUrl = asset($fileDirRel . $fileName);
                 $fileKey = $fileDirRel . $fileName;
-              
 
+                $defaultConfig = (new ConfigVariables())->getDefaults();
+                $fontDirs = $defaultConfig['fontDir'];
+
+                $defaultFontConfig = (new FontVariables())->getDefaults();
+                $fontData = $defaultFontConfig['fontdata'];
                 $mpdf = new Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
@@ -236,9 +243,19 @@ class JobController extends Controller
                     'margin_top' => 0,
                     'margin_bottom' => 10,
                     'defaultfooterline' => 0,
-                    'tempDir' => base_path('tmp')  // Laravel-friendly path
+                    'tempDir' => base_path('tmp'),  // Laravel-friendly path
+                    'fontDir' => array_merge($fontDirs, [
+                            resource_path('fonts'),
+                        ]),
+                        'fontdata' => $fontData + [
+                            'kan' => ['R' => 'NotoSerifKannada-VariableFont_wght.ttf'],
+                            'tel' => ['R' => 'NotoSansTelugu-VariableFont_wdth,wght.ttf'],
+                            'guj' => ['R' => 'NotoSerifGujarati-VariableFont_wght.ttf'],
+                            'ben' => ['R' => 'NotoSansBengali-VariableFont_wdth,wght.ttf'],
+
+                        ]
                 ]);
-               
+
                 $mpdf->SetHTMLFooter(
                     '<table width="100%">
                         <tr>
@@ -248,21 +265,21 @@ class JobController extends Controller
                         </tr>
                     </table>'
                 );
-                
+
                 // Write HTML to PDF
                 $mpdf->WriteHTML($transcript_pdf_html);
-                
-             
-                
+
+
+
                 // Save PDF to file
                 $mpdf->Output($filePath, Destination::FILE);
-                
+
                 // Store file info in array
                 $file_data = [
                     'key'  => $fileKey,
                     'path' => $filePath,
                 ];
-           
+
 
 // Define path based on flow key
 $folder = in_array($link_params_arr['flow_key'], ['sbilm_rinn_raksha', 'sbilpn_rinn_raksha', 'sbilmp_rinn_raksha'])
@@ -275,7 +292,7 @@ $filename = basename($sourcePath);
 
 // Target path inside Laravel's storage
 $destinationPath = 'public/' . $folder . '/' . $filename;
-   
+
 // Make sure the file exists
 if (file_exists($sourcePath)) {
     // Store (copy) the file to the public storage folder
@@ -289,7 +306,7 @@ if (file_exists($sourcePath)) {
     $publicUrl = null;
 }
 
-$this->jobService->updatePDFUrl($pNCValue['id'],$sourcePath);          
+$this->jobService->updatePDFUrl($pNCValue['id'],$sourcePath);
 print_r($sourcePath);die;
             }
         }
@@ -299,7 +316,7 @@ print_r($sourcePath);die;
         $lowerScreen = strtolower($screen);
         $screenKey = strtolower(str_replace(" ", "", $dataListValue['image']['screen']));
         $screenType = '';
-    
+
         // Identify screen type
         if (strpos($lowerScreen, 'welcomescreen') !== false && in_array($source, [2, 9, 10])) {
             $screenType = 'welcome';
@@ -314,17 +331,17 @@ print_r($sourcePath);die;
         } elseif (strpos($screenKey, 'medicalquestionnaire-disagree') !== false) {
             $screenType = 'disagree';
         }
-    
+
         switch ($screenType) {
             case 'welcome':
                 return "Thank you for choosing SBI life as your preferred life insurance partner. Welcome to the pre-issuance verification process of Your SBI Life - $productName plan chosen by you, to protect your $loanCategory. Your Form number is displayed on the screen. You can quote this Form number for all future communications with us.";
-    
+
             case 'personal':
                 return "Please verify the personal details displayed on the screen. Please note these details will form part of your Certificate of Insurance after your proposal is accepted.";
-    
+
             case 'medical':
                 return "We would like you to confirm that you have read and answered all the medical questions in the proposal correctly and disclosed all details of medical/treatment history (if any). [Non-disclosure of any adverse medical history may lead to rejection of claim in future]";
-    
+
             case 'confirm1':
                 $formattedText = [];
                 foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -350,18 +367,18 @@ print_r($sourcePath);die;
                     }
                 }
                 return implode("<br>", $formattedText);
-    
+
             case 'confirm2':
                 $formattedText = [];
                 $responseInput = $dataListValue['response']['input'];
-    
+
                 foreach ($responseInput as $key => $value) {
                     if ($key === "reviewProposalResponse") {
                         $formattedText[] = "1. Do you wish to review your responses given in the proposal form for medical Questionnaire?<br>$value</br>";
                         if (strtolower($value) !== 'yes') break;
                         continue;
                     }
-    
+
                     $questionMap = [
                         "str_rinn_have_you_consulted_any_doctor" => "2. Have you consulted any doctor for surgical operation or have been hospitalized for any disorder other than minor cough, cold or flu during the last 5 years?",
                         "str_rinn_have_you_any_illness_injury" => "3. Have you ever had any illness/injury, major surgical operation or received any treatment for any medical conditions for a continuous period of more than 14 days? (Except for minor cough, cold, flu, appendicitis & typhoid)",
@@ -386,10 +403,10 @@ print_r($sourcePath);die;
                         "str_rinn_months_pregnant" => "A. Months in Pregnant:",
                         "str_rinn_gynecological_problems" => "b) Have you suffered from any gynecological problems or illness related to breasts and uterus or ovary?"
                     ];
-    
+
                     $questionText = $questionMap[$key] ?? '';
                     if (!$questionText) continue;
-    
+
                     if (strpos(strtolower($value), '_edit') !== false) {
                         $questionText = "<b style='color:red'>" . $questionText . "</b>";
                         $val = str_replace("_EDIT", "", strtoupper($value));
@@ -397,24 +414,24 @@ print_r($sourcePath);die;
                     } elseif ($value === true || $value === "true") {
                         $value = "YES";
                     }
-    
+
                     if (in_array($key, ['str_rinn_alcohol_type', 'str_rinn_alcohol_quantity', 'str_rinn_months_pregnant'])) {
                         $formattedText[] = $questionText . $value;
                     } else {
                         $formattedText[] = $questionText . "<br>" . strtoupper($value) . "</br>";
                     }
                 }
-    
+
                 return implode("<br>", $formattedText);
-    
+
             case 'disagree':
                 return "Enter your disagreement in the box provided.";
-    
+
             default:
                 return '';
         }
     } */
-    
+
 
     public function getSlugName($flowKey)
     {
@@ -425,6 +442,6 @@ print_r($sourcePath);die;
         );
     }
 
-    
+
 
 }
