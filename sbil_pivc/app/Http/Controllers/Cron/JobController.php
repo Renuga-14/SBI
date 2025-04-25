@@ -61,7 +61,7 @@ class JobController extends Controller
         default:
             return response()->json(['error' => 'Invalid case provided. Please use RR or PIVC only.'], 400);
     }
-// print_r($case);
+
     }
 
     // PendingFlagPush 
@@ -157,13 +157,15 @@ class JobController extends Controller
                     $source = $pNCValue['source']; 
                     $loanCategory = $link_params_arr['flow_data']['LOAN_CATEGORY'];
                     $productName = ucwords(str_replace('_',' ', $slugName));
-                    $rin = Products::$rin;  
+                    $rin = Products::getProducts('rin');  
+                    $rs = Products::getProducts('rs');  
                  
                     if (in_array($flowKey,$rin)) { 
                         if (!empty($screen)) {
                             $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('rinnraksha',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue);
                         }
                     } else {
+                     
                         $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('pivc',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue);
                     } 
                    
