@@ -62,7 +62,7 @@ class JobController extends Controller
         default:
             return response()->json(['error' => 'Invalid case provided. Please use RR or PIVC only.'], 400);
     }
-// print_r($case);
+
     }
 
     // PendingFlagPush
@@ -157,25 +157,62 @@ class JobController extends Controller
                     $sbi_url = "https://sbi-prod-data.s3.ap-south-1.amazonaws.com/adc/product_repo/";
                     $screen = isset($dataListValue['image']['screen']) ? strtolower(str_replace(" ", "", $dataListValue['image']['screen'])) : '';
 
-                    $source = $pNCValue['source'];
-                    $loanCategory = $link_params_arr['flow_data']['LOAN_CATEGORY'];
+                    $source = $pNCValue['source'];//print_r($link_params_arr);die;
+                    $loanCategory = ($link_params_arr['flow_data']['LOAN_CATEGORY']) ?? '';
                     $productName = ucwords(str_replace('_',' ', $slugName));
-                    $rin = Products::$rin;
-
-                    if (in_array($flowKey,$rin)) {
+                    $rin = Products::getProducts('rin');  
+                    // $rs = Products::getProducts('rs');  
+                    $sfs = Products::getProducts('sfs');  
+                    // $getAllProducts = Products::getAllProductKeys();  //
+                    $getAllProducts = array_filter(Products::getAllProductKeys(), function($productKey) {
+                        return strpos($productKey, 'rin') === false;
+                    });
+                    
+                    
+                    if (in_array($flowKey,$rin)) { 
                         if (!empty($screen)) {
-                            $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('rinnraksha',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue);
+                            $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('rinnraksha',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue,'',$completed_year,$this->data);
                         }
                     } else {
-                        $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('pivc',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue);
+                       /*  $faceComparisonKeys = [
+                            'sbilm_retire_smart_plus', 'sbilsa_retire_smart_plus', 'sbilpl_retire_smart_plus',
+                            'sbilm_retire_smart', 'sbilsa_retire_smart', 'sbilpl_retire_smart',
+                            'sbilm_smart_wealth_builder_v3', 'sbilsa_smart_wealth_builder_v3', 'sbilo_smart_wealth_builder_v3',
+                            'sbilm_smart_swadhan_plus', 'sbilsa_smart_swadhan_plus', 'sbilo_smart_swadhan_plus'
+                        ];
+                        $face_score = null;
+                        $face_response = null;
+                        if (in_array($flowKey, $faceComparisonKeys) && $pNCValue['proposal_no']) {
+                            // $faceDetails = json_decode($this->Face_Comparision($pNCValue['proposal_no']), true);
+                            $face_score = $faceDetails['face_score'] ?? null;
+                            $face_response = $faceDetails['face_response'] ?? null;
+                        } */
+                            $productKey = Products::getProductKeyByPartialName($slugName);
+
+                          
+                                $slug_name = str_replace(
+                                    ['_v3', '_v4', 'sbilpl_', 'sbilo_', 'sbilsa_', 'sbilm_'],
+                                    '',
+                                    $this->data['link_params']['flow_key']
+                                );
+                                $productName = ucwords(str_replace('_',' ', $slug_name));
+                                
+                                // Set product files
+                                $this->data['prod_Video'] = "$sbi_url$slug_name/product_video_english.mp4"; 
+                                $this->data['sales_brocher_pdf'] = "$sbi_url$slug_name/brochure.pdf";
+                                $this->data['faqs_pdf'] = "$sbi_url$slug_name/faqs.pdf";
+                            
+                                $this->data['audio_text'][$screen] = PDFTextController::handlePDFTextAllLang('pivc',$slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language,$dataListValue,$productKey,$completed_year,$this->data);
+                               
+                       
                     }
 
 
-                }  //die;
+                }// print_r($this->data['audio_text']);  die;
 
                 $curDateTime = date('Y-m-d H:i:s');
                 // $this->data['face_score'] = $face_score;
-                // $this->data['face_response'] = $face_response;
+                // $this->data['proposal_no'] = $pNCValue['proposal_no'];
                 $this->data['response'] = $response;
                 $this->data['curDateTime'] = $curDateTime;
                 $this->data['facial'] = 0;//(!empty($face_reg))?$face_reg[0]:0;
