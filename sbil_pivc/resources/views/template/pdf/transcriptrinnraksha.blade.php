@@ -120,6 +120,8 @@ use App\Helpers\CommonHelper;
             text-align: left !important;
         }
 
+
+
         .tr {
             text-align: right !important;
         }
@@ -282,7 +284,7 @@ use App\Helpers\CommonHelper;
 
                                             @if(!empty($audioTextValue))
 
-                                            <span class="t1 {{ $langClass }}">{!! $audioTextValue !!}</span>
+                                            <span class="tl {{ $langClass }}">{!! $audioTextValue !!}</span>
 
                                             @endif
                                         </td>
@@ -323,11 +325,50 @@ use App\Helpers\CommonHelper;
             <div class="page-break"></div>
 
             @php $photoIndex++; @endphp
+
             @endif
+<!--vikram--->
+
+
+
 
             @endforeach
-
+ <tr>
+            <td colspan="2">
+                <table class="pbg1">
+                    <tr class="item">
+                        <td colspan="3">
+                            <span class="tl bold">Thank You</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="bold">Sales Brochure: </span>
+                            <a href="{{ asset('https://cloud-rnd-data.s3.ap-south-1.amazonaws.com/rinraksha/brochure.pdf') }}" target="_blank" title="Sales Brochure">Click Here</a>
+                        </td>
+                        <td>
+                            {{-- Smart Care link removed/commented --}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span class="bold">Toll Free: </span>
+                            <a href="tel:18002679090" target="_blank">18002679090</a><br>
+                        </td>
+                        <td style="text-align: left">
+                            <span class="bold">Email: </span>
+                            <a href="mailto:info@sbilife.co.in" target="_blank">info@sbilife.co.in</a><br>
+                        </td>
+                        <td>
+                            <span class="bold">Website: </span>
+                            <a href="https://www.sbilife.co.in" target="_blank" title="FAQs">https://www.sbilife.co.in</a><br>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
         </table>
+
     </div>
 
 </body>
