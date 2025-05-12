@@ -227,8 +227,8 @@ use App\Helpers\CommonHelper;
                                 <span class="bold">Plan : </span><br/>
                             @else
                                 <span class="bold">Plan : </span>{{ CommonHelper::check_had_value($link_params['flow_data']['PLAN']) }} 
-                                @if($plan != '') 
-                                    ("{{ $plan }}")
+                                @if($link_params['flow_data']['PLAN'] != '') 
+                                    ("{{ $link_params['flow_data']['PLAN'] }}")
                                 @endif
                                 <br/>
                             @endif
