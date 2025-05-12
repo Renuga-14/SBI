@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 
 class PDFTextController extends Controller
 {
-    public static function handlePDFTextAllLang($journeyType, $slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language, $dataListValue)
+    public static function handlePDFTextAllLang($journeyType, $slugName, $flowKey, $screen, $source, $loanCategory, $productName, $language, $dataListValue,$productKey,$completed_year,$data)
     {
         $lowerScreen = strtolower($screen);
         $screenKey = strtolower(str_replace(" ", "", $dataListValue['image']['screen'] ?? ''));
         $screenType = '';
-
+      
         if ($journeyType == 'rinnraksha') {
             if (strpos($lowerScreen, 'welcomescreen') !== false) {
                 $screenType = 'welcome';
@@ -795,18 +795,256 @@ class PDFTextController extends Controller
                     return '';
             }
         } elseif ($journeyType == 'pivc') {
-            // Add PIVC-specific screenType mapping and content here
-            if (strpos($lowerScreen, 'welcome') !== false) {
-                $screenType = 'welcome';
-            }
+           
 
-            switch ($screenType) {
-                case 'welcome':
-                    return "Welcome to PIVC journey – language: $language";
-                // Add other cases for PIVC
+            $policyDetails = self::getCommonPolicyDetailsWithoutFace($data, $completed_year);
+            
+            $COMMON_PAYMENT_TYPE = $policyDetails['COMMON_PAYMENT_TYPE'];
+            $COMMON_PAYMENT_FREQUENCY = $policyDetails['COMMON_PAYMENT_FREQUENCY'];
+            $COMMON_PAYMENT_TERM = $policyDetails['COMMON_PAYMENT_TERM'];
+            $common_benefit_term = $policyDetails['COMMON_BENEFIT_TERM'];
+            $COMMON_PREMIUM_AMOUNT = $policyDetails['COMMON_PREMIUM_AMOUNT'];
+            $common_sum_assured = $policyDetails['COMMON_SUM_ASSURED'];
+            $COMMON_BI_4 = $policyDetails['COMMON_BI_4'];
+            $COMMON_PAYMENT_TERM_IN_YEARS = $policyDetails['COMMON_PAYMENT_TERM_IN_YEARS'];
+            $COMMON_POLICY_TERM_IN_YEARS = $policyDetails['COMMON_POLICY_TERM_IN_YEARS'];
+            $POLICY_TERM_IN_YEARS_PB_SCREEN = $policyDetails['POLICY_TERM_IN_YEARS_PB_SCREEN'];
+            $payoutPeriod = $policyDetails['payoutPeriod'];
+            $GuaranteedIncome = $policyDetails['GuaranteedIncome'];
+            $strGuaranteedPayoutFrequency = $policyDetails['strGuaranteedPayoutFrequency'];
+          
+            if (strpos($lowerScreen, 'welcomescreen') !== false) {
+                return self::WelcomeCallPIVC($productKey, $language);
+            } elseif (strpos($lowerScreen, 'personaldetails') !== false) {
+                return self::PIVCPersonal($productKey,$loanCategory, $language);
+            }elseif (strpos($lowerScreen, 'personaldetails-disagree') !== false) {
+                $screenType = 'personal_disagree';
+            } elseif (strpos($lowerScreen, 'policydetails') !== false) { 
+                return self::PIVCProductIntro($productKey,$loanCategory, $language,$COMMON_PAYMENT_TYPE,$COMMON_PREMIUM_AMOUNT,$COMMON_PAYMENT_FREQUENCY,$COMMON_PAYMENT_TERM,$COMMON_PAYMENT_TERM_IN_YEARS);
+            }elseif (strpos($lowerScreen, 'medicalquestionnaire') !== false) {
+                return self::MedicalPIVC($language);
+            } elseif (strpos($lowerScreen, 'productbenefits') !== false) {
+                return self::ProductBenefitsPIVC($productKey, $language);
+            }elseif (strpos($lowerScreen, 'benefitillustration') !== false) {
+                return self:: DeathBenefitPIVC($productKey, $language);
+            }  elseif (strpos($screenKey, 'termsdetails') !== false) {
+                return self:: TermsDetailsPIVC($productKey, $language);
             }
+          
+          /*   switch ($screenType) {
+                case 'welcome':
+                break;
+                  
+                    
+          
+                case 'personal':
+                    switch ($productKey) {
+                        case 'sfs':
+                            switch ($language) {
+                                case 'hin':
+                                    $loan_type_rinn = ($loanCategory == "Home Loan") ? "होम लोन" : "पर्सनल लोन";
+                                    return "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद. आप द्वारा चुने गए एसबीआई लाइफ ऋणरक्षा $loan_type_rinn प्रस्ताव की प्री-इशुएंस वैरिफिकेशन प्रक्रिया में आपका स्वागत है. आपका फॉर्म नं. स्क्रीन पर प्रदर्शित किया गया है. आप हमारे साथ होने वाले भावी पत्राचारों के लिए इस फॉर्म नं. का संदर्भ दे सकते हैं.";
+        
+                                default:
+                                return 'Please verify the personal details displayed on the screen.';
+        
+                            }
+                            default:
+                            break;
+    
+                        } 
+                default:
+                break;
+            } */
         }
 
         return '';
     }
+
+        public static function WelcomeCallPIVC($productKey, $language)
+        {
+            $messages = [
+                'sfs' => [
+                    'hin' => 'SBI Life में आपका स्वागत है।',
+                    'eng' => 'Thank you for choosing SBI Life as your preferred life insurance partner.',
+                ],
+                'rs' => [
+                    'hin' => 'ABC उत्पाद के लिए आपका स्वागत है।',
+                    'eng' => 'Welcome to ABC product.',
+                ],
+               
+            ];
+    
+            return $messages[$productKey][$language] ?? '';
+        }
+    
+
+        public static function MedicalPIVC($language)
+        {
+            $messages = [
+                    'hin' => 'SBI Life में आपका स्वागत है।',
+                    'eng' => 'We would like you to confirm that you have read and answered all the medical questions in the proposal correctly and disclosed all details of medical/treatment history (if any). [Non-disclosure of any adverse medical history may lead to rejection of claim in future].',
+            ];
+        
+            return $messages[$language] ?? '';
+        }
+    
+        public static function PIVCPersonal($productKey, $loanCategory, $language)
+        {
+            $loanTypes = [
+                'hin' => [
+                    'Home Loan' => 'होम लोन',
+                    'Personal Loan' => 'पर्सनल लोन'
+                ],
+                'eng' => [
+                    'Home Loan' => 'Home Loan',
+                    'Personal Loan' => 'Personal Loan'
+                ]
+            ];
+    
+            $loanType = $loanTypes[$language][$loanCategory] ?? $loanCategory;
+    
+            $personalMessages = [
+                'sfs' => [
+                    'hin' => "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद। ... $loanType ...",
+                    'eng' => "Please verify the personal details displayed on the screen.",
+                ],
+                'rs' => [
+                    'hin' => "आपका चयनित ऋण प्रकार है: $loanType. कृपया विवरण सत्यापित करें।",
+                    'eng' => "You have selected: $loanType. Please verify the details.",
+                ],
+               
+            ];
+    
+            return $personalMessages[$productKey][$language] ?? '';
+        }
+    
+        public static function PIVCProductIntro($productKey, $loanCategory, $language, $paymentType, $premiumAmount, $paymentFrequency, $paymentTerm, $paymentTermInYears)
+        {
+            $loanTypes = [
+                'hin' => [
+                    'Home Loan' => 'होम लोन',
+                    'Personal Loan' => 'पर्सनल लोन'
+                ],
+                'eng' => [
+                    'Home Loan' => 'Home Loan',
+                    'Personal Loan' => 'Personal Loan'
+                ]
+            ];
+    
+            $loanType = $loanTypes[$language][$loanCategory] ?? $loanCategory;
+    
+            $productIntro = [
+                'sfs' => [
+                    'hin' => "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद। यह एक व्यक्तिगत, गैर-लिंक्ड, भागीदारी वाली जीवन बीमा योजना है। यह $loanType के लिए है।",
+                    'eng' => "You have applied for SBI Life - Smart Future Star which is an individual, non-linked, participating Life Insurance Savings Product and it is not a FD. You have chosen a $paymentType premium paying term policy and will pay ₹$premiumAmount $paymentFrequency for $paymentTerm years, i.e., until $paymentTermInYears.",
+                ],
+                'rs' => [
+                    'hin' => "आपने ABC उत्पाद के लिए आवेदन किया है, जो एक $loanType योजना है। भुगतान ₹$premiumAmount प्रति $paymentFrequency के अनुसार $paymentTerm वर्षों तक होगा।",
+                    'eng' => "You have applied for ABC product for your $loanType. You need to pay ₹$premiumAmount every $paymentFrequency for $paymentTerm years.",
+                ],
+            ];
+    
+            return $productIntro[$productKey][$language] ?? '';
+        }
+        public static function DeathBenefitPIVC($productKey, $language)
+        {
+          
+
+            $productBenefit = [
+                'sfs' => [
+                    'hin' => "",
+                    'eng' => "In case of any unfortunate event, death benefit will be paid as displayed on the screen.",
+                ]
+               
+            ];
+    
+            return $productBenefit[$productKey][$language] ?? '';
+        }
+        public static function ProductBenefitsPIVC($productKey, $language)
+        {
+           
+     
+            $productIntro = [
+                'sfs' => [
+                    'hin' => "",
+                    'eng' => "For more information on the benefits under this product, please refer the policy bond in detail.",
+                ]
+            ];
+    
+            return $productIntro[$productKey][$language] ?? '';
+          
+        }
+    
+        public static function TermsDetailsPIVC($productKey, $language)
+        {
+           
+     
+            $productIntro = [
+                'sfs' => [
+                    'hin' => "",
+                    'eng' => "Some of the important features are displayed on the screen. Please go through the same for better understanding.",
+                ]
+            ];
+    
+            return $productIntro[$productKey][$language] ?? '';
+          
+        }
+    
+    
+    public static function getCommonPolicyDetailsWithoutFace($data,$completedYear)
+    {
+        $linkParams = $data['link_params'] ?? [];
+        $flowData = $linkParams['flow_data'] ?? [];
+        $flowKey = $linkParams['flow_key'] ?? '';
+
+        // Define grouped flow keys
+        $smartChampKeys = ['sbilm_smart_champ_insurance', 'sbilsa_smart_champ_insurance', 'sbilpl_smart_champ_insurance'];
+        $annuityPlusKeys = ['sbilm_smart_annuity_plus', 'sbilsa_smart_annuity_plus', 'sbilpl_smart_annuity_plus'];
+
+        // Normalize PREMIUM_POLICY_TYPE
+        $premiumType = strtolower($flowData['PREMIUM_POLICY_TYPE'] ?? '');
+        $COMMON_PAYMENT_TYPE = match (true) {
+            $premiumType === 'regular' && in_array($flowKey, $smartChampKeys) => 'Limited',
+            in_array($flowKey, $annuityPlusKeys) => 'Single',
+            default => $flowData['PREMIUM_POLICY_TYPE'] ?? '',
+        };
+
+        // Normalize FREQUENCY and trim fields
+        $COMMON_PAYMENT_FREQUENCY = str_replace(['Annuallyly', 'Annual'], 'Annually', $flowData['FREQUENCY'] ?? '');
+        $COMMON_PAYMENT_TERM = trim($flowData['PAYMENT_TERM'] ?? '') ?: '0';
+        $COMMON_BENEFIT_TERM = trim($flowData['BENEFIT_TERM'] ?? '');
+        $COMMON_PREMIUM_AMOUNT = $flowData['PREMIUM_AMOUNT'] ?? 0;
+        $COMMON_SUM_ASSURED = $flowData['SUM_ASSURED'] ?? 0;
+        $COMMON_BI_4 = $flowData['BI_4'] ?? null;
+
+        // Derived values
+        $COMMON_PAYMENT_TERM_IN_YEARS = ((int) $COMMON_PAYMENT_TERM) + $completedYear - 1;
+        $COMMON_POLICY_TERM_IN_YEARS = $completedYear + (int) $COMMON_BENEFIT_TERM;
+        $POLICY_TERM_IN_YEARS_PB_SCREEN = ((int) $COMMON_PAYMENT_TERM) + $completedYear + 1;
+
+        // Optional fields
+        $payoutPeriod = $flowData['payoutPeriod'] ?? null;
+        $GuaranteedIncome = $flowData['GuaranteedIncome'] ?? null;
+        $strGuaranteedPayoutFrequency = $flowData['strGuaranteedPayoutFrequency'] ?? null;
+
+        // Return result
+        return [
+            'COMMON_PAYMENT_TYPE' => $COMMON_PAYMENT_TYPE,
+            'COMMON_PAYMENT_FREQUENCY' => $COMMON_PAYMENT_FREQUENCY,
+            'COMMON_PAYMENT_TERM' => $COMMON_PAYMENT_TERM,
+            'COMMON_BENEFIT_TERM' => $COMMON_BENEFIT_TERM,
+            'COMMON_PREMIUM_AMOUNT' => $COMMON_PREMIUM_AMOUNT,
+            'COMMON_SUM_ASSURED' => $COMMON_SUM_ASSURED,
+            'COMMON_BI_4' => $COMMON_BI_4,
+            'COMMON_PAYMENT_TERM_IN_YEARS' => $COMMON_PAYMENT_TERM_IN_YEARS,
+            'COMMON_POLICY_TERM_IN_YEARS' => $COMMON_POLICY_TERM_IN_YEARS,
+            'POLICY_TERM_IN_YEARS_PB_SCREEN' => $POLICY_TERM_IN_YEARS_PB_SCREEN,
+            'payoutPeriod' => $payoutPeriod,
+            'GuaranteedIncome' => $GuaranteedIncome,
+            'strGuaranteedPayoutFrequency' => $strGuaranteedPayoutFrequency,
+        ];
+    }
+
+
 }

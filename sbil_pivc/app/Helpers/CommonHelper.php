@@ -291,5 +291,55 @@ class CommonHelper
         return null;
     }
 
+    public static function AnnuityPlan($plan_code, $category, $product)
+    {
+        $plan_code = str_replace('_', '.', $plan_code);
+        $plan_code = str_replace('10', '11', $plan_code);
+
+        $annuity = [61,65,73,74,77,78,122,123,130,131,132,137,138,139,187,194,204,205,6,23,180,181,182,189];
+        $saralpension = [160,161];
+
+        if ($plan_code == '1.1' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity';
+        } elseif ($plan_code == '1.2' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Return of Purchase Price';
+        } elseif ($plan_code == '1.3' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Return of Balance Purchase Price';
+        } elseif ($plan_code == '1.4' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Annual Simple Increase of 3% ';
+        } elseif ($plan_code == '1.5' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Annual Simple Increase of 5%';
+        } elseif ($plan_code == '1.6' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Certain Period of 10 Years';
+        } elseif ($plan_code == '1.7' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Certain Period of 20 Years';
+        } elseif ($plan_code == '1.8' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Annual Compound Increase of 3%';
+        } elseif ($plan_code == '1.9' && in_array($product, $annuity)) {
+            $plan = 'Life Annuity with Annual Compound Increase of 5%';
+        } elseif ($plan_code == '1.11' && in_array($product, $annuity)) {
+            $plan = 'Deferred Life Annuity with Return of Purchase Price';
+        } elseif ($plan_code == '2.1' && in_array($product, $annuity)) {
+            $plan = 'Life and Last Survivor – 100% Annuity';
+        } elseif ($plan_code == '2.2' && in_array($product, $annuity)) {
+            $plan = 'Life and Last Survivor – 100%  Annuity with Return of Purchase Price';
+        } elseif ($plan_code == '2.3' && in_array($product, $annuity)) {
+            $plan = 'Deferred Life and Last Survivor Annuity with Refund of purchase price';
+        } elseif ($plan_code == '2.4' && in_array($product, $annuity)) {
+            $plan = 'Life and Last Survivor – 100% Income with Capital Refund';
+        } elseif ($plan_code == '1' && in_array($product, $saralpension)) {
+            $plan = 'Life annuity with return of 100% of Purchase Price (ROP)';
+        } elseif ($plan_code == '2' && in_array($product, $saralpension)) {
+            $plan = 'Joint Life Last Survivor Annuity with Return of 100% of purchase price (ROP) on death of the Last Survivor';
+        } else {
+            $plan = '';
+        }
+
+        return response()->json(['plan' => $plan]);
+    }
+
+  
+
+
 
 }
