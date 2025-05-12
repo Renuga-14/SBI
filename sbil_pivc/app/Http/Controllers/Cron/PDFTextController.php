@@ -29,7 +29,7 @@ class PDFTextController extends Controller
                 $screenType = 'medical_disagree';
             }
 
-            
+
             switch ($screenType) {
 
                 case 'welcome':
@@ -146,47 +146,47 @@ class PDFTextController extends Controller
                         switch ($language) {
                             case 'hin':
                                 return "कृपया नीले रंग से चिह्नित बक्सों में आवश्यक सुधार करें और फिर आगे बढ़ें पर टैप करें.";
-    
+
                             case 'kan':
                                 return "ಒದಗಿಸಿದ ಬಾಕ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಭಿನ್ನಾಭಿಪ್ರಾಯವನ್ನು ನಮೂದಿಸಿ ಮತ್ತು ಮುಂದುವರೆಯಲು ಟ್ಯಾಪ್ ಮಾಡಿ.";
-    
+
                             case 'tel':
                                 return "పైనగల బాక్సులో మీరు అంగీకరించకపోవడాన్ని నమోదు చేసి ’సేవ్ అండ్ ప్రొసీడ్’ని క్లిక్ చెయ్యండి.";
-    
+
                             case 'mal':
                                 return "നൽകിയിരിക്കുന്ന ബോക്സിൽ നിങ്ങളുടെ വിയോജിപ്പ് രേഖപ്പെടുത്തി മുന്നോട്ട് ടാപ്പുചെയ്യുക";
-    
+
                             case 'tam':
                                 return "கொடுக்கப்பட்டுள்ள பெட்டியில் உங்கள் கருத்து வேறுபாட்டை உள்ளிட்டு, தொடரவும் என்பதைத் தட்டவும்.";
-    
+
                             case 'mar':
                                 return "प्रदान केलेल्या बॉक्समध्ये तुमचे असहमत प्रविष्ट करा आणि पुढे जा वर टॅप करा.";
-    
+
                             case 'guj':
                                 return "આપેલા બૉક્સમાં તમારો મતભેદ દાખલ કરો અને આગળ વધો પર ટૅપ કરો.";
-    
-    
+
+
                             case 'ori':
                                 return "ଉପରେ ପ୍ରଦାନ କରାଯାଇଥିବା ବକ୍ସରେ ଆପଣଙ୍କ ଅସହମତି ଏଣ୍ଟର କରନ୍ତୁ ଏବଂ ‘ସେଭ୍ ଓ ପ୍ରୋସିଡ୍’ କ୍ଲିକ୍ କରନ୍ତୁ";
-    
-    
+
+
                             case 'pun':
                                 return "ਪ੍ਰਦਾਨ ਕੀਤੇ ਗਏ ਬਾਕਸ ਵਿੱਚ ਆਪਣੀ ਅਸਹਿਮਤੀ ਦਰਜ ਕਰੋ ਅਤੇ ਅੱਗੇ ਵਧੋ 'ਤੇ ਟੈਪ ਕਰੋ";
-    
+
                             case 'ben':
                                 return "প্রদত্ত বাক্সে আপনার মতবিরোধ লিখুন এবং এগিয়ে যান আলতো চাপুন";
-    
-    
+
+
                             case 'ass':
                                 return "প্ৰদত্ত বাকচটোত আপোনাৰ অসন্মতি প্ৰবিষ্ট কৰক আৰু আগবাঢ়ক টেপ কৰক";
-    
-    
+
+
                             case 'miz':
                                 return "I inrem lohna chu box pek tawhah ziak la, proceed tih kha tap rawh";
-    
+
                             case 'maw':
                                 return "दिए गए बॉक्स में अपनी असहमति दर्ज करें और आगे बढ़ें पर टैप करें.";
-    
+
                             default:
                                 return "Please verify the personal details displayed on the screen. Please note these details will form part of your Certificate of Insurance after your proposal is accepted.";
                         }
@@ -245,47 +245,47 @@ class PDFTextController extends Controller
                         switch ($language) {
                             case 'hin':
                                 return  "दिए गए बॉक्स में अपनी असहमति दर्ज करें और आगे बढ़ें पर टैप करें.";
-    
+
                             case 'kan':
                                 return "ಒದಗಿಸಿದ ಬಾಕ್ಸ್‌ನಲ್ಲಿ ನಿಮ್ಮ ಭಿನ್ನಾಭಿಪ್ರಾಯವನ್ನು ನಮೂದಿಸಿ ಮತ್ತು ಮುಂದುವರೆಯಲು ಟ್ಯಾಪ್ ಮಾಡಿ.";
-    
+
                             case 'tel':
                                 return "పైనగల బాక్సులో మీరు అంగీకరించకపోవడాన్ని నమోదు చేసి ’సేవ్ అండ్ ప్రొసీడ్’ని క్లిక్ చెయ్యండి.";
-    
+
                             case 'mal':
                                 return "നൽകിയിരിക്കുന്ന ബോക്സിൽ നിങ്ങളുടെ വിയോജിപ്പ് രേഖപ്പെടുത്തി മുന്നോട്ട് ടാപ്പുചെയ്യുക";
-    
+
                             case 'tam':
                                 return "கொடுக்கப்பட்டுள்ள பெட்டியில் உங்கள் கருத்து வேறுபாட்டை உள்ளிட்டு, தொடரவும் என்பதைத் தட்டவும்.";
-    
+
                             case 'mar':
                                 return "प्रदान केलेल्या बॉक्समध्ये तुमचे असहमत प्रविष्ट करा आणि पुढे जा वर टॅप करा.";
-    
+
                             case 'guj':
                                 return "આપેલા બૉક્સમાં તમારો મતભેદ દાખલ કરો અને આગળ વધો પર ટૅપ કરો";
-    
-    
+
+
                             case 'ori':
                                 return "ଉପରେ ପ୍ରଦାନ କରାଯାଇଥିବା ବକ୍ସରେ ଆପଣଙ୍କ ଅସହମତି ଏଣ୍ଟର କରନ୍ତୁ ଏବଂ ‘ସେଭ୍ ଓ ପ୍ରୋସିଡ୍’ କ୍ଲିକ୍ କରନ୍ତୁ";
-    
-    
+
+
                             case 'pun':
                                 return "ਪ੍ਰਦਾਨ ਕੀਤੇ ਗਏ ਬਾਕਸ ਵਿੱਚ ਆਪਣੀ ਅਸਹਿਮਤੀ ਦਰਜ ਕਰੋ ਅਤੇ ਅੱਗੇ ਵਧੋ 'ਤੇ ਟੈਪ ਕਰੋ";
-    
+
                             case 'ben':
                                 return "প্রদত্ত বাক্সে আপনার মতবিরোধ লিখুন এবং এগিয়ে যান আলতো চাপুন";
-    
-    
+
+
                             case 'ass':
                                 return "প্ৰদত্ত বাকচটোত আপোনাৰ অসন্মতি প্ৰবিষ্ট কৰক আৰু আগবাঢ়ক টেপ কৰক";
-    
-    
+
+
                             case 'miz':
                                 return "I inrem lohna chu box pek tawhah ziak la, proceed tih kha tap rawh";
-    
+
                             case 'maw':
                                 return "दिए गए बॉक्स में अपनी असहमति दर्ज करें और आगे बढ़ें पर टैप करें.";
-    
+
                             default:
                                 return "Enter your disagreement in the box provided and tap on proceed.";
                         }
@@ -370,7 +370,7 @@ class PDFTextController extends Controller
                                 }
                             }
                             return implode("<br>", $formattedText);
-    
+
                         case 'mal':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -396,7 +396,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'tam':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -422,7 +422,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'mar':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -448,7 +448,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'guj':
                                 $formattedText = [];
                                 foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -474,7 +474,7 @@ class PDFTextController extends Controller
                                     }
                                 }
                                 return implode("<br>", $formattedText);
-    
+
                         case 'ori':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -500,7 +500,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'pun':
                             $formattedText = [];
                             foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -526,7 +526,7 @@ class PDFTextController extends Controller
                                 }
                             }
                             return implode("<br>", $formattedText);
-    
+
                         case 'ben':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -552,7 +552,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'ass':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -578,7 +578,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'miz':
                         $formattedText = [];
                         foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -604,7 +604,7 @@ class PDFTextController extends Controller
                             }
                         }
                         return implode("<br>", $formattedText);
-    
+
                         case 'maw':
                             $formattedText = [];
                             foreach ($dataListValue['response']['input'] as $key => $value) {
@@ -630,8 +630,8 @@ class PDFTextController extends Controller
                                 }
                             }
                             return implode("<br>", $formattedText);
-    
-                       
+
+
 
 
                         default:
@@ -679,59 +679,59 @@ class PDFTextController extends Controller
                                 case 'hin':
                                     $questionText = "3.क्या आप मेडिकल प्रश्नावली के लिए प्रस्ताव फॉर्म में दी गई प्रतिक्रियाओं की समीक्षा करना चाहते हैं?";
                                     break;
-        
+
                                 case 'kan':
                                     $questionText = "3.ವೈದ್ಯಕೀಯ ಪ್ರಶ್ನಾವಳಿಗಾಗಿ ಪ್ರಪೋಸಲ್ ಫಾರ್ಮ್ನಲ್ಲಿ ನೀವು ಕೊಟ್ಟಿರುವ ಉತ್ತರಗಳನ್ನು ಪುನಃ ಪರಿಶೀಲಿಸಲು ಇಷ್ಟಪಡುತ್ತೀರಾ?";
                                     break;
-        
+
                                 case 'tel':
                                     $questionText = "3.వైద్యకీయ ప్రశ్నావళి కోసం ప్రతిపాదన ఫారంలో అందించిన స్పందనలను పరిశీలించాలని అనుకుంటున్నారా?";
                                     break;
-        
+
                                 case 'mal':
                                     $questionText = "3.മെഡിക്കൽ ചോദ്യാവലിയുടെ കാര്യത്തിൽ പ്രൊപ്പോസൽ ഫോമിൽ നിങ്ങൾ നൽകിയിരിക്കുന്ന പ്രതികരണങ്ങൾ പുനരവലോകനം ചെയ്യാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുണ്ടോ?";
                                     break;
-        
-                                case 'tamil':
+
+                                case 'tam':
                                     $questionText = "3.முன்மொழிவு படிவத்தில் கொடுக்கப்பட்ட பதில்களை மருத்துவ வினாத்தாளுக்காக மதிப்பாய்வு செய்ய விரும்புகிறீர்களா?";
                                     break;
-        
+
                                 case 'mar':
                                     $questionText = "3.तुम्हाला मेडिकल प्रश्नावलीसाठीच्या प्रपोझल फॉर्म मध्ये तुम्ही दिलेल्या प्रतिसादांचे तुम्हाला पुनरावलोकन करावयाचे आहे का?";
                                     break;
-        
+
                                 case 'guj':
                                     $questionText = "3.તબીબી પ્રશ્નાવલી માટેના પ્રસ્તાવ પત્રકમાં તમે આપેલા જવાબોની તમે સમીક્ષા કરવા ચાહો છો?";
                                     break;
-        
-        
+
+
                                 case 'ori':
                                     $questionText = "3.ଆପଣ ଡାକ୍ତରୀ ପ୍ରଶ୍ନାବଳି ପାଇଁ ପ୍ରସ୍ତାବ ଫର୍ମରେ ଦିଆଯାଇଥିବା ଆପଣଙ୍କର ଉତ୍ତର ସମୀକ୍ଷା କରିବାକୁ ଚାହାନ୍ତି କି?";
                                     break;
-        
-        
+
+
                                 case 'pun':
                                     $questionText = "3.ਕੀ ਤੁਸੀਂ ਮੇਡਿਕਲ ਪ੍ਰਸ਼ਨਾਵਲੀ ਲਈ ਪ੍ਰਸਤਾਵ ਫਾਰਮ ਵਿੱਚ ਦਿੱਤੀ ਗਈ ਪ੍ਰਕ੍ਰਿਆਵਾਂ ਦੀ ਸਮਿੱਖਿਆ ਕਰਵਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ ?";
                                     break;
-        
+
                                 case 'ben':
                                     $questionText = "3.আপনি কী মেডিক্যাল প্রশ্নোত্তরের জন্যে প্রস্তাব ফর্মে দেওয় আপনার প্রতিক্রিয়া, পুনর্সমীক্ষা করতে ইচ্ছুক?";
                                     break;
-        
-        
+
+
                                 case 'ass':
                                     $questionText = "3.চিকিৎসা বিষয়ক প্ৰশ্নাৱলীৰ হেতু প্ৰস্তাৱ প্ৰপত্ৰত দিয়া আপোনাৰ উত্তৰ সমূহৰ আপুনি পুনৰুক্ষণ কৰিব বিচাৰেনেকি?";
                                     break;
-        
+
                                 case 'miz':
                                     $questionText = "3.Damdawi lampang zawhna Proposal form ami I chhanna hi ennawn leh I duh em?";
                                     break;
-        
+
                                 case 'maw':
                                     $questionText = "3.क्या आप मेडिकल प्रश्नावली के लिए प्रस्ताव फॉर्म में दी गई प्रतिक्रियाओं की समीक्षा करना चाहते हैं?";
                                     break;
 
-                               
+
 
                                 default:
                                     $questionText = "3.Do you wish to review your responses given in the proposal form for medical Questionarie?";
@@ -789,7 +789,7 @@ class PDFTextController extends Controller
 
                     return implode("<br>", $formattedText);
 
-                
+
 
                 default:
                     return '';
