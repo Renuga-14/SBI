@@ -58,5 +58,23 @@ class Products
         // Check if the product type exists and return the corresponding array, or an empty array if not found
         return self::$products[$type] ?? [];
     }
+    public static function getAllProductKeys()
+    {
+         return array_keys(self::$products);
+    }
+    public static function getProductKeyByPartialName($partialName)
+    {
+    foreach (self::$products as $shortCode => $productList) {
+        foreach ($productList as $productName) {
+            if (strpos($productName, $partialName) !== false) {
+                return $shortCode;
+            }
+        }
+    }
+
+    return null;
+    }
+
+
 }
 
