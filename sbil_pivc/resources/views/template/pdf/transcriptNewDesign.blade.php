@@ -198,8 +198,9 @@
                         </tr>
                     </table>
                 </td>
-            </tr>
+            </tr> 
             @php
+           
 $i = 0;
 
 // Mapping screen names to short keys
@@ -232,61 +233,224 @@ unset($data_list['Photo Consent']);
 @endphp
 
 @if (!empty($data_list))
-    @foreach ($data_list as $key => $value)
+    @foreach ($data_list as $key => $dataListValue)
         @php
-            $screen = $value['image']['screen'] ?? '';
-            $response = $value['response'] ?? '';
-            $mediaUrl = isset($value['image']['media_url']) ? CommonHelper::check_had_value($value['image']['media_url']) : '';
-            $mediaScreenUrl = $value['image']['media_screen_url'] ?? '';
-            $langClass = $value['image']['language'] ?? 'en';
-
-            // Skip invalid data
-            if (empty($screen) || in_array($screen, $screenToavoid) || empty($response)) continue;
-
-            $i++;
+            $screen = $dataListValue['image']['screen'] ?? '';
+            $response = $dataListValue['response'] ?? '';
+            $mediaUrl = $dataListValue['image']['media_url'] ?? '';
+            $mediaScreenUrl = $dataListValue['image']['media_screen_url'] ?? '';
+            $langClass = $dataListValue['image']['language'] ?? 'en';
             $scnKey = $scrn[$screen] ?? '';
             $score = ($facial && isset($facial[$scnKey])) ? $facial[$scnKey] : 0;
             $audioKey = strtolower(str_replace(' ', '', $screen));
             $audioText = $audio_text[$audioKey] ?? '';
-            $audioUrl = url("portal/api/data/playaudioFromPDF/{$link_params['proposal_no']}/$audioKey");
+            $audioUrl = url("api/data/playAudioFromPDF/{$link_params['proposal_no']}/$audioKey");
+            
         @endphp
+        @if (!empty($screen) && !empty($response))
+            @if (!in_array($screen, $screenToavoid))
+                @php $i++;  @endphp
+                <tr>
+                    <td colspan="2">
+                        <table class="pbg1">
+                            <tr class="item">
+                                <td colspan="2"><span class="tl bold">Photo {{ $i }}</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="{{ $mediaUrl }}" width="210px" height="280px" />
+                                    @if ($audioKey !== 'productbenefits')
+                                        <table>
+                                            <tr class="item">
+                                                <td colspan="2">
+                                                    <span class="tl">Audio</span>
+                                                    <p style="padding:15px;">
+                                                        <a href="{{ $audioUrl }}" target="_blank">
+                                                            <img src="https://cdn.iconscout.com/icon/free/png-256/speaker-2653706-2202518.png" width="20px" height="20px" />
+                                                        </a>
+                                                    </p>
+                                                    <br>
+                                                    <span class="t1 {{ $langClass }}">{{ $audioText }}</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    @endif
+                                </td>
+                                <td style="text-align:left;">
+                                    <img src="{{ $mediaScreenUrl }}" width="250px" height="480px" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+    <td colspan="2">
+        <table class="pbg1">
+            <tr class="item">
+                <td colspan="2">
+                    <span class="tl bold">Responses</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @php
+                        $slug = $dataListValue['response']['slug'];
+                        $agreeStatus = CommonHelper::check_boolean_value($dataListValue['response']['agree_status'], 'Yes', 'No');
+                        $color = ($agreeStatus != "Yes") ? "red" : "green";
+                    @endphp
 
-        <tr>
-            <td colspan="2">
-                <table class="pbg1">
-                    <tr class="item">
-                        <td colspan="2"><span class="tl bold">Photo {{ $i }}</span></td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <img src="{{ $mediaUrl }}" width="210px" height="280px" />
-                            @if ($audioKey !== 'productbenefits')
-                                <table>
-                                    <tr class="item">
-                                        <td colspan="2">
-                                            <span class="tl">Audio</span>
-                                            <p style="padding:15px;">
-                                                <a href="{{ $audioUrl }}" target="_blank">
-                                                    <img src="https://cdn.iconscout.com/icon/free/png-256/speaker-2653706-2202518.png" width="20px" height="20px" />
-                                                </a>
-                                            </p>
-                                            <br>
-                                            <span class="t1 {{ $langClass }}">{{ $audioText }}</span>
-                                        </td>
-                                    </tr>
-                                </table>
+                    @if(Str::startsWith($slug, 'c') || Str::startsWith($slug, 'e') || ($link_params['flow_data']['APP_SOURCE'] == 'ONLINE'))
+                        <span class="bold" style="color:{{ $color }}">Agreement Status : </span>
+                        <span style="color:{{ $color }}">{{ $agreeStatus }}</span><br>
+                    @endif
+
+                    @php
+                        $arru = ['Disagreement', 'Nominee name'];
+                    @endphp
+
+                    @if(Str::startsWith($slug, 'e') && !empty($dataListValue['response']['input']))
+                        @foreach ($dataListValue['response']['input'] as $kResIn => $vResIn)
+                            @php
+                                if (substr_count($vResIn, "-") == 2) {
+                                    $timestamp = strtotime($vResIn);
+                                    $newData = date('d-m-Y', $timestamp);
+                                    if ($newData == "01-01-1970") {
+                                        $newData = $vResIn;
+                                    }
+                                } else {
+                                    $newData = $vResIn;
+                                }
+
+                                $personalKey = $PersonalLabel[$kResIn] ?? null;
+                            @endphp
+
+                            @if($personalKey == "MAILINGCITY")
+                                @if(trim($link_params['flow_data']['MAILINGCITY'])." - ".$link_params['flow_data']['MAILINGPINCODE']." ".$link_params['flow_data']['MAILINGSTATE'] != trim($newData))
+                                    <span style="color:{{ $color }}">
+                                        <span class="bold">{{ formatDisagreementInput($kResIn) }} : </span>{{ check_had_value($vResIn) }}
+                                    </span><br>
+                                @endif
+                            @elseif($personalKey && isset($link_params['flow_data'][$personalKey]))
+                                @if(trim($link_params['flow_data'][$personalKey]) != trim($newData))
+                                    <span style="color:{{ $color }}">
+                                        <span class="bold">{{ formatDisagreementInput($kResIn) }} : </span>{{ check_had_value($vResIn) }}
+                                    </span><br>
+                                @endif
                             @endif
-                        </td>
-                        <td style="text-align:left;">
-                            <img src="{{ $mediaScreenUrl }}" width="250px" height="480px" />
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
+                        @endforeach
+                    @endif
+                </td>
+            </tr>
+        </table>
+    </td>
+</tr>
+
+            @endif
+        @elseif (!empty($dataListValue['image']))
+            @if (!in_array($screen, $screenToavoid) && isset($mediaUrl))
+                @php 
+                    $i++;
+                    $flowKey = $link_params['flow_key'];
+                    $screenName = strtolower(str_replace(" ", "", $screen));
+                    $flowList = [
+                        'sbilm_smart_wealth_builder_v3', 'sbilo_smart_wealth_builder_v3', 'sbilsa_smart_wealth_builder_v3', 'sbilpl_smart_wealth_builder_v3',
+                        'sbilm_sampoorn_cancer_suraksha', 'sbilo_sampoorn_cancer_suraksha', 'sbilsa_sampoorn_cancer_suraksha', 'sbilpl_sampoorn_cancer_suraksha'
+                    ];
+                @endphp
+                <tr>
+                    <td colspan="2">
+                        <table class="pbg1">
+                            <tr class="item">
+                                <td colspan="2"><span class="tl bold">Photo {{ $i }}</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <img src="{{ CommonHelper::check_had_value($mediaUrl) }}" width="210px" height="280px" />
+                                    <table>
+                                        <tr class="item">
+                                            <td colspan="2">
+                                                @if (in_array($flowKey, $flowList))
+                                                    @if ($screenName != 'productbenefits')
+                                                        <span class="tl">Audio</span>
+                                                        <p style="padding:15px;">
+                                                            <a href="{{ $audioUrl }}" target="_blank">
+                                                                <img src="https://cdn.iconscout.com/icon/free/png-256/speaker-2653706-2202518.png" width="20px" height="20px" />
+                                                            </a>
+                                                        </p>
+                                                        <br>
+                                                        <span class="t1 {{ $langClass }}">{{ $audio_text[$screenName] ?? '' }}</span>
+                                                    @endif
+                                                @else
+                                                    <span class="tl">Audio</span>
+                                                    <p style="padding:15px;">
+                                                        <a href="{{ $audioUrl }}" target="_blank">
+                                                            <img src="https://cdn.iconscout.com/icon/free/png-256/speaker-2653706-2202518.png" width="20px" height="20px" />
+                                                        </a>
+                                                    </p>
+                                                    <br>
+                                                    <span class="t1 {{ $langClass }}">{{ $audio_text[$screenName] ?? '' }}</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td class="wwrap" style="text-align: left;">
+                                    <img src="{{ CommonHelper::check_had_value($dataListValue['image']['media_screen_url']) }}" width="250px" height="480px" 
+                                        @if($screenName == 'productbenefits') style="margin-left:250px;" @endif />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            @endif
+        @elseif (!empty($response)) 
+            @if (!in_array($dataListValue['response']['page'], $screenToavoid))
+                @php
+                    $j++;
+                    $agreeStatus = CommonHelper::check_boolean_value($dataListValue['response']['agree_status'], 'Yes', 'No');
+                    $color = $agreeStatus == "Yes" ? "green" : "red";
+                    $page = in_array($dataListValue['response']['page'], ['OTP - Agree', 'OTP - Disagree']) 
+                        ? 'OTP' 
+                        : CommonHelper::check_had_value($dataListValue['response']['page']);
+                @endphp
+                <tr>
+                    <td colspan="2">
+                        <table class="pbg1">
+                            <tr class="item">
+                                <td><span class="tl bold uline">Response</span></td>
+                            </tr>
+                            <tr>
+                                <td class="wwrap" style="text-align: left; color:{{ $color }}">
+                                    <span class="bold">Screen: </span><span class="bold">{{ $page }}</span><br>
+
+                                    @if(substr($dataListValue['response']['slug'], 0, 1) === "c" && $link_params['flow_data']['APP_SOURCE'] != 'ONLINE')
+                                        <span class="bold">Agreement Status: </span>
+                                        <span style="color:{{ $color }}">{{ $agreeStatus }}</span><br>
+                                    @elseif($link_params['flow_data']['APP_SOURCE'] == 'ONLINE')
+                                        <span class="bold">OTP Submit</span><br>
+                                    @endif
+
+                                    @if(substr($dataListValue['response']['slug'], 0, 1) === "e" && !empty($dataListValue['response']['input']))
+                                        @foreach($dataListValue['response']['input'] as $kResIn => $vResIn)
+                                            <span class="bold">{{ formatDisagreementInput($kResIn) }}: </span>{{ CommonHelper::check_had_value($vResIn) }}<br>
+                                        @endforeach
+                                    @endif
+
+                                    <span class="bold">Date Time: </span>{{ CommonHelper::check_had_value($dataListValue['response']['created_on']) }}<br>
+                                    <span class="bold">Face Comparison Score: </span>{{ $score ?? '' }}<br>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                
+            @endif
+        @endif
+ 
     @endforeach
 @endif
 @php
+
     $flow_key = $link_params['flow_key'] ?? '';
 
     $retire_products = [
