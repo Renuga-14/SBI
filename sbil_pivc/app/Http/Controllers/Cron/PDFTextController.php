@@ -11,7 +11,7 @@ class PDFTextController extends Controller
         $lowerScreen = strtolower($screen);
         $screenKey = strtolower(str_replace(" ", "", $dataListValue['image']['screen'] ?? ''));
         $screenType = '';
-      
+
         if ($journeyType == 'rinnraksha') {
             if (strpos($lowerScreen, 'welcomescreen') !== false) {
                 $screenType = 'welcome';
@@ -795,10 +795,10 @@ class PDFTextController extends Controller
                     return '';
             }
         } elseif ($journeyType == 'pivc') {
-           
+
 
             $policyDetails = self::getCommonPolicyDetailsWithoutFace($data, $completed_year);
-            
+
             $COMMON_PAYMENT_TYPE = $policyDetails['COMMON_PAYMENT_TYPE'];
             $COMMON_PAYMENT_FREQUENCY = $policyDetails['COMMON_PAYMENT_FREQUENCY'];
             $COMMON_PAYMENT_TERM = $policyDetails['COMMON_PAYMENT_TERM'];
@@ -812,14 +812,14 @@ class PDFTextController extends Controller
             $payoutPeriod = $policyDetails['payoutPeriod'];
             $GuaranteedIncome = $policyDetails['GuaranteedIncome'];
             $strGuaranteedPayoutFrequency = $policyDetails['strGuaranteedPayoutFrequency'];
-          
+
             if (strpos($lowerScreen, 'welcomescreen') !== false) {
                 return self::WelcomeCallPIVC($productKey, $language);
             } elseif (strpos($lowerScreen, 'personaldetails') !== false) {
                 return self::PIVCPersonal($productKey,$loanCategory, $language);
             }elseif (strpos($lowerScreen, 'personaldetails-disagree') !== false) {
                 $screenType = 'personal_disagree';
-            } elseif (strpos($lowerScreen, 'policydetails') !== false) { 
+            } elseif (strpos($lowerScreen, 'policydetails') !== false) {
                 return self::PIVCProductIntro($productKey,$loanCategory, $language,$COMMON_PAYMENT_TYPE,$COMMON_PREMIUM_AMOUNT,$COMMON_PAYMENT_FREQUENCY,$COMMON_PAYMENT_TERM,$COMMON_PAYMENT_TERM_IN_YEARS);
             }elseif (strpos($lowerScreen, 'medicalquestionnaire') !== false) {
                 return self::MedicalPIVC($language);
@@ -830,13 +830,13 @@ class PDFTextController extends Controller
             }  elseif (strpos($screenKey, 'termsdetails') !== false) {
                 return self:: TermsDetailsPIVC($productKey, $language);
             }
-          
+
           /*   switch ($screenType) {
                 case 'welcome':
                 break;
-                  
-                    
-          
+
+
+
                 case 'personal':
                     switch ($productKey) {
                         case 'sfs':
@@ -844,15 +844,15 @@ class PDFTextController extends Controller
                                 case 'hin':
                                     $loan_type_rinn = ($loanCategory == "Home Loan") ? "होम लोन" : "पर्सनल लोन";
                                     return "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद. आप द्वारा चुने गए एसबीआई लाइफ ऋणरक्षा $loan_type_rinn प्रस्ताव की प्री-इशुएंस वैरिफिकेशन प्रक्रिया में आपका स्वागत है. आपका फॉर्म नं. स्क्रीन पर प्रदर्शित किया गया है. आप हमारे साथ होने वाले भावी पत्राचारों के लिए इस फॉर्म नं. का संदर्भ दे सकते हैं.";
-        
+
                                 default:
                                 return 'Please verify the personal details displayed on the screen.';
-        
+
                             }
                             default:
                             break;
-    
-                        } 
+
+                        }
                 default:
                 break;
             } */
@@ -872,12 +872,12 @@ class PDFTextController extends Controller
                     'hin' => 'ABC उत्पाद के लिए आपका स्वागत है।',
                     'eng' => 'Welcome to ABC product.',
                 ],
-               
+
             ];
-    
+
             return $messages[$productKey][$language] ?? '';
         }
-    
+
 
         public static function MedicalPIVC($language)
         {
@@ -885,10 +885,10 @@ class PDFTextController extends Controller
                     'hin' => 'SBI Life में आपका स्वागत है।',
                     'eng' => 'We would like you to confirm that you have read and answered all the medical questions in the proposal correctly and disclosed all details of medical/treatment history (if any). [Non-disclosure of any adverse medical history may lead to rejection of claim in future].',
             ];
-        
+
             return $messages[$language] ?? '';
         }
-    
+
         public static function PIVCPersonal($productKey, $loanCategory, $language)
         {
             $loanTypes = [
@@ -901,9 +901,9 @@ class PDFTextController extends Controller
                     'Personal Loan' => 'Personal Loan'
                 ]
             ];
-    
+
             $loanType = $loanTypes[$language][$loanCategory] ?? $loanCategory;
-    
+
             $personalMessages = [
                 'sfs' => [
                     'hin' => "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद। ... $loanType ...",
@@ -913,12 +913,12 @@ class PDFTextController extends Controller
                     'hin' => "आपका चयनित ऋण प्रकार है: $loanType. कृपया विवरण सत्यापित करें।",
                     'eng' => "You have selected: $loanType. Please verify the details.",
                 ],
-               
+
             ];
-    
+
             return $personalMessages[$productKey][$language] ?? '';
         }
-    
+
         public static function PIVCProductIntro($productKey, $loanCategory, $language, $paymentType, $premiumAmount, $paymentFrequency, $paymentTerm, $paymentTermInYears)
         {
             $loanTypes = [
@@ -931,9 +931,12 @@ class PDFTextController extends Controller
                     'Personal Loan' => 'Personal Loan'
                 ]
             ];
-    
+
             $loanType = $loanTypes[$language][$loanCategory] ?? $loanCategory;
-    
+
+
+
+
             $productIntro = [
                 'sfs' => [
                     'hin' => "एसबीआई लाइफ को अपने पसंदीदा लाइफ इंश्योरेंस पार्टनर के रूप में चुनने के लिए आपका धन्यवाद। यह एक व्यक्तिगत, गैर-लिंक्ड, भागीदारी वाली जीवन बीमा योजना है। यह $loanType के लिए है।",
@@ -944,54 +947,54 @@ class PDFTextController extends Controller
                     'eng' => "You have applied for ABC product for your $loanType. You need to pay ₹$premiumAmount every $paymentFrequency for $paymentTerm years.",
                 ],
             ];
-    
+
             return $productIntro[$productKey][$language] ?? '';
         }
         public static function DeathBenefitPIVC($productKey, $language)
         {
-          
+
 
             $productBenefit = [
                 'sfs' => [
                     'hin' => "",
                     'eng' => "In case of any unfortunate event, death benefit will be paid as displayed on the screen.",
                 ]
-               
+
             ];
-    
+
             return $productBenefit[$productKey][$language] ?? '';
         }
         public static function ProductBenefitsPIVC($productKey, $language)
         {
-           
-     
+
+
             $productIntro = [
                 'sfs' => [
                     'hin' => "",
                     'eng' => "For more information on the benefits under this product, please refer the policy bond in detail.",
                 ]
             ];
-    
+
             return $productIntro[$productKey][$language] ?? '';
-          
+
         }
-    
+
         public static function TermsDetailsPIVC($productKey, $language)
         {
-           
-     
+
+
             $productIntro = [
                 'sfs' => [
                     'hin' => "",
                     'eng' => "Some of the important features are displayed on the screen. Please go through the same for better understanding.",
                 ]
             ];
-    
+
             return $productIntro[$productKey][$language] ?? '';
-          
+
         }
-    
-    
+
+
     public static function getCommonPolicyDetailsWithoutFace($data,$completedYear)
     {
         $linkParams = $data['link_params'] ?? [];
